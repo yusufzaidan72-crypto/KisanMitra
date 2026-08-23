@@ -132,6 +132,7 @@ class CtaButton extends StatefulWidget {
   final String label;
   final IconData? icon;
   final VoidCallback? onTap;
+  final double? width;
   final bool isLoading;
 
   const CtaButton({
@@ -142,6 +143,8 @@ class CtaButton extends StatefulWidget {
     this.width,
     this.isLoading = false,
   });
+
+
 
 
   @override
