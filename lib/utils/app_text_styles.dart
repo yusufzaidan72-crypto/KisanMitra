@@ -1,131 +1,137 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
+/// Premium Typography System (Space Grotesk + DM Sans pairing)
 class AppTextStyles {
-  static const TextStyle displayLarge = TextStyle(
-    fontSize: 32,
-    fontWeight: FontWeight.bold,
+  // Display & Hero Headings (Space Grotesk)
+  static TextStyle displayLarge = GoogleFonts.spaceGrotesk(
+    fontSize: 42,
+    fontWeight: FontWeight.w700,
     color: AppColors.textPrimary,
-    height: 1.2,
+    height: 1.15,
+    letterSpacing: -0.5,
   );
 
-  static const TextStyle displayMedium = TextStyle(
-    fontSize: 28,
-    fontWeight: FontWeight.bold,
+  static TextStyle displayMedium = GoogleFonts.spaceGrotesk(
+    fontSize: 34,
+    fontWeight: FontWeight.w700,
     color: AppColors.textPrimary,
     height: 1.2,
+    letterSpacing: -0.3,
   );
 
-  static const TextStyle displaySmall = TextStyle(
-    fontSize: 24,
-    fontWeight: FontWeight.bold,
+  static TextStyle displaySmall = GoogleFonts.spaceGrotesk(
+    fontSize: 26,
+    fontWeight: FontWeight.w600,
     color: AppColors.textPrimary,
-    height: 1.2,
+    height: 1.25,
   );
 
-  static const TextStyle headlineLarge = TextStyle(
-    fontSize: 24,
-    fontWeight: FontWeight.bold,
+  static TextStyle headlineLarge = GoogleFonts.spaceGrotesk(
+    fontSize: 22,
+    fontWeight: FontWeight.w700,
     color: AppColors.textPrimary,
     height: 1.3,
   );
 
-  static const TextStyle headlineMedium = TextStyle(
-    fontSize: 20,
+  static TextStyle headlineMedium = GoogleFonts.spaceGrotesk(
+    fontSize: 19,
     fontWeight: FontWeight.w600,
     color: AppColors.textPrimary,
     height: 1.3,
   );
 
-  static const TextStyle headlineSmall = TextStyle(
-    fontSize: 18,
+  static TextStyle headlineSmall = GoogleFonts.spaceGrotesk(
+    fontSize: 17,
     fontWeight: FontWeight.w600,
     color: AppColors.textPrimary,
     height: 1.3,
   );
 
-  static const TextStyle titleLarge = TextStyle(
+  // Titles & Body (DM Sans)
+  static TextStyle titleLarge = GoogleFonts.dmSans(
     fontSize: 16,
     fontWeight: FontWeight.w600,
     color: AppColors.textPrimary,
     height: 1.4,
   );
 
-  static const TextStyle titleMedium = TextStyle(
+  static TextStyle titleMedium = GoogleFonts.dmSans(
     fontSize: 15,
     fontWeight: FontWeight.w500,
     color: AppColors.textPrimary,
     height: 1.4,
   );
 
-  static const TextStyle titleSmall = TextStyle(
+  static TextStyle titleSmall = GoogleFonts.dmSans(
     fontSize: 14,
     fontWeight: FontWeight.w500,
     color: AppColors.textPrimary,
     height: 1.4,
   );
 
-  static const TextStyle bodyLarge = TextStyle(
+  static TextStyle bodyLarge = GoogleFonts.dmSans(
     fontSize: 16,
-    fontWeight: FontWeight.normal,
+    fontWeight: FontWeight.w400,
     color: AppColors.textPrimary,
-    height: 1.5,
+    height: 1.6,
   );
 
-  static const TextStyle bodyMedium = TextStyle(
+  static TextStyle bodyMedium = GoogleFonts.dmSans(
     fontSize: 14,
-    fontWeight: FontWeight.normal,
-    color: AppColors.textPrimary,
-    height: 1.5,
-  );
-
-  static const TextStyle bodySmall = TextStyle(
-    fontSize: 12,
-    fontWeight: FontWeight.normal,
+    fontWeight: FontWeight.w400,
     color: AppColors.textSecondary,
     height: 1.5,
   );
 
-  static const TextStyle labelLarge = TextStyle(
+  static TextStyle bodySmall = GoogleFonts.dmSans(
+    fontSize: 12,
+    fontWeight: FontWeight.w400,
+    color: AppColors.textMuted,
+    height: 1.5,
+  );
+
+  static TextStyle labelLarge = GoogleFonts.dmSans(
     fontSize: 14,
-    fontWeight: FontWeight.w500,
-    color: AppColors.textPrimary,
-    letterSpacing: 0.1,
-  );
-
-  static const TextStyle button = TextStyle(
-    fontSize: 16,
     fontWeight: FontWeight.w600,
-    letterSpacing: 0.5,
+    color: AppColors.textPrimary,
+    letterSpacing: 0.2,
   );
 
-  static const TextStyle appBarTitle = TextStyle(
-    fontSize: 18,
-    fontWeight: FontWeight.w700,
-    color: Colors.white,
+  static TextStyle button = GoogleFonts.spaceGrotesk(
+    fontSize: 15,
+    fontWeight: FontWeight.w600,
     letterSpacing: 0.3,
   );
 
-  static const TextStyle navLabel = TextStyle(
+  static TextStyle appBarTitle = GoogleFonts.spaceGrotesk(
+    fontSize: 18,
+    fontWeight: FontWeight.w700,
+    color: AppColors.textPrimary,
+    letterSpacing: 0.3,
+  );
+
+  static TextStyle navLabel = GoogleFonts.dmSans(
     fontSize: 11,
     fontWeight: FontWeight.w500,
   );
 
-  static const TextStyle chip = TextStyle(
+  static TextStyle chip = GoogleFonts.dmSans(
     fontSize: 12,
-    fontWeight: FontWeight.w500,
+    fontWeight: FontWeight.w600,
     color: AppColors.primary,
   );
 
-  static const TextStyle caption = TextStyle(
+  static TextStyle caption = GoogleFonts.dmSans(
     fontSize: 11,
-    fontWeight: FontWeight.normal,
-    color: AppColors.textSecondary,
+    fontWeight: FontWeight.w400,
+    color: AppColors.textMuted,
   );
 
-  static const TextStyle demoBadge = TextStyle(
+  static TextStyle demoBadge = GoogleFonts.spaceGrotesk(
     fontSize: 10,
-    fontWeight: FontWeight.bold,
+    fontWeight: FontWeight.w700,
     color: Colors.white,
     letterSpacing: 0.5,
   );

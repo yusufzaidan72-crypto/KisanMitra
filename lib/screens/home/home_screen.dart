@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import '../../providers/farmer_provider.dart';
 import '../../providers/app_providers.dart';
-import '../../theme/app_colors.dart';
-import '../../theme/app_text_styles.dart';
+import '../../utils/app_colors.dart';
+import '../../utils/app_text_styles.dart';
 import '../../models/weather_data.dart';
 import '../../models/crop_monitor.dart';
-import '../../widgets/common/app_widgets.dart';
+import '../../widgets/widgets.dart';
 import '../../localization/app_localizations.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -40,32 +41,39 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: RefreshIndicator(
-        color: AppColors.primary,
-        onRefresh: _loadData,
-        child: CustomScrollView(
-          slivers: [
-            _buildSliverAppBar(l, farmer?.firstName ?? l.farmer),
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              sliver: SliverList(
-                delegate: SliverChildListDelegate([
-                  const SizedBox(height: 4),
-                  _buildWeatherCard(l),
-                  const SizedBox(height: 16),
-                  _buildCropSection(l, farmer),
-                  const SizedBox(height: 16),
-                  SectionHeader(
-                    title: l.quickActions,
-                    actionLabel: null,
-                  ),
-                  const SizedBox(height: 12),
-                  _buildQuickActions(l),
-                  const SizedBox(height: 80),
-                ]),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: AppColors.heroGradient,
+        ),
+        child: RefreshIndicator(
+          color: AppColors.primary,
+          onRefresh: _loadData,
+          child: CustomScrollView(
+            slivers: [
+              _buildSliverAppBar(l, farmer?.firstName ?? l.farmer),
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate([
+                    const SizedBox(height: 8),
+                    _buildHeroBanner(l).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0),
+                    const SizedBox(height: 20),
+                    _buildWeatherCard(l).animate().fadeIn(duration: 500.ms, delay: 100.ms),
+                    const SizedBox(height: 24),
+                    _buildCropSection(l, farmer).animate().fadeIn(duration: 500.ms, delay: 200.ms),
+                    const SizedBox(height: 24),
+                    SectionHeader(
+                      title: l.quickActions,
+                      actionLabel: null,
+                    ).animate().fadeIn(duration: 400.ms, delay: 300.ms),
+                    const SizedBox(height: 14),
+                    _buildQuickActions(l).animate().fadeIn(duration: 600.ms, delay: 350.ms),
+                    const SizedBox(height: 80),
+                  ]),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -84,18 +92,19 @@ class _HomeScreenState extends State<HomeScreen> {
       pinned: true,
       automaticallyImplyLeading: false,
       elevation: 0,
-      backgroundColor: AppColors.primaryDark,
+      backgroundColor: AppColors.backgroundSecondary.withValues(alpha: 0.8),
       actions: [
         _buildNotificationBell(context, l),
         IconButton(
-          icon: const Icon(Icons.settings_outlined, color: Colors.white),
+          icon: const Icon(Icons.settings_outlined, color: AppColors.textPrimary),
           onPressed: () => Navigator.pushNamed(context, '/settings'),
         ),
       ],
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
-          decoration: const BoxDecoration(
-            gradient: AppColors.heroGradient,
+          decoration: BoxDecoration(
+            color: AppColors.backgroundSecondary.withValues(alpha: 0.7),
+            border: const Border(bottom: BorderSide(color: AppColors.glassBorder, width: 1)),
           ),
           child: SafeArea(
             child: Padding(
@@ -106,25 +115,20 @@ class _HomeScreenState extends State<HomeScreen> {
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.18),
+                          color: AppColors.primaryDark.withValues(alpha: 0.4),
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+                          border: Border.all(color: AppColors.primary.withValues(alpha: 0.5)),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.spa_rounded, color: Colors.white, size: 14),
+                            const Icon(Icons.spa_rounded, color: AppColors.primary, size: 16),
                             const SizedBox(width: 6),
                             Text(
                               l.appName,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 0.5,
-                              ),
+                              style: AppTextStyles.demoBadge.copyWith(color: AppColors.primaryLight),
                             ),
                           ],
                         ),
@@ -136,36 +140,34 @@ class _HomeScreenState extends State<HomeScreen> {
                   Row(
                     children: [
                       Container(
-                        width: 44,
-                        height: 44,
+                        width: 48,
+                        height: 48,
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.2),
+                          color: AppColors.primaryDark.withValues(alpha: 0.3),
                           shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white.withValues(alpha: 0.4), width: 1.5),
+                          border: Border.all(color: AppColors.primary, width: 1.5),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: AppColors.primaryGlow,
+                              blurRadius: 12,
+                              spreadRadius: 1,
+                            )
+                          ],
                         ),
-                        child: const Center(child: Text('👨‍🌾', style: TextStyle(fontSize: 22))),
+                        child: const Center(child: Text('👨‍🌾', style: TextStyle(fontSize: 24))),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 14),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               '$greeting,',
-                              style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.85),
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                              ),
+                              style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
                             ),
                             Text(
                               firstName,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 0.2,
-                              ),
+                              style: AppTextStyles.headlineLarge,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -185,6 +187,57 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _buildHeroBanner(AppLocalizations l) {
+    return GlassCard(
+      padding: const EdgeInsets.all(22),
+      borderColor: AppColors.primary.withValues(alpha: 0.4),
+      backgroundColor: AppColors.glassSurface,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.accent.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.accent.withValues(alpha: 0.4)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.auto_awesome, color: AppColors.accent, size: 14),
+                    const SizedBox(width: 4),
+                    Text(
+                      'AI SMART FARMING',
+                      style: AppTextStyles.demoBadge.copyWith(color: AppColors.accentLight),
+                    ),
+                  ],
+                ),
+              ),
+              const Spacer(),
+              const DemoBadge(),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            l.isHindi
+                ? 'स्मार्ट कृषि सहायक के साथ पैदावार बढ़ाएं'
+                : 'Empowering Your Harvest with AI Intelligence',
+            style: AppTextStyles.displaySmall,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            l.isHindi
+                ? 'मौसम सलाह, रोग पहचान और लाइव मंडी भाव एक ही स्थान पर प्राप्त करें।'
+                : 'Instant disease diagnosis, predictive weather alerts, and real-time mandi prices.',
+            style: AppTextStyles.bodyMedium,
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildNotificationBell(BuildContext context, AppLocalizations l) {
     return Consumer<WeatherProvider>(
       builder: (context, weatherProvider, _) {
@@ -195,7 +248,7 @@ class _HomeScreenState extends State<HomeScreen> {
           alignment: Alignment.center,
           children: [
             IconButton(
-              icon: const Icon(Icons.notifications_outlined, color: Colors.white),
+              icon: const Icon(Icons.notifications_outlined, color: AppColors.textPrimary),
               onPressed: () => _showNotificationDialog(context, l, alerts),
             ),
             if (hasAlerts)
@@ -208,7 +261,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   decoration: BoxDecoration(
                     color: AppColors.error,
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 1.5),
+                    border: Border.all(color: AppColors.background, width: 1.5),
                   ),
                 ),
               ),
@@ -222,12 +275,19 @@ class _HomeScreenState extends State<HomeScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        backgroundColor: AppColors.cardBg,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: AppColors.border),
+        ),
         title: Row(
           children: [
             const Icon(Icons.notifications_active_outlined, color: AppColors.primary),
             const SizedBox(width: 8),
-            Text(l.isHindi ? 'कृषि सूचनाएं & अलर्ट' : 'Agricultural Alerts', style: AppTextStyles.titleLarge),
+            Text(
+              l.isHindi ? 'कृषि सूचनाएं & अलर्ट' : 'Agricultural Alerts',
+              style: AppTextStyles.titleLarge,
+            ),
           ],
         ),
         content: SizedBox(
@@ -239,8 +299,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     const SizedBox(height: 8),
                     Container(
                       padding: const EdgeInsets.all(18),
-                      decoration: const BoxDecoration(
-                        color: AppColors.primarySurface,
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryDark.withValues(alpha: 0.2),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(Icons.notifications_off_outlined, size: 44, color: AppColors.primary),
@@ -274,7 +334,7 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: () => Navigator.pop(ctx),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
             child: Text(l.isHindi ? 'ठीक है' : 'OK'),
           ),
@@ -294,7 +354,7 @@ class _HomeScreenState extends State<HomeScreen> {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
+        color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
@@ -322,15 +382,15 @@ class _HomeScreenState extends State<HomeScreen> {
     return Consumer<WeatherProvider>(
       builder: (context, provider, _) {
         if (provider.isLoading) {
-          return AppCard(
+          return const GlassCard(
             child: SizedBox(
               height: 110,
-              child: LoadingWidget(message: l.loading),
+              child: LoadingWidget(message: 'Fetching live weather...'),
             ),
           );
         }
         if (provider.error != null) {
-          return AppCard(
+          return GlassCard(
             child: ErrorStateWidget(
               message: provider.error!,
               onRetry: _loadData,
@@ -340,7 +400,8 @@ class _HomeScreenState extends State<HomeScreen> {
         final w = provider.weather;
         if (w == null) return const SizedBox.shrink();
 
-        return GestureDetector(
+        return GlassCard(
+          borderColor: AppColors.secondary.withValues(alpha: 0.4),
           onTap: () {
             if (provider.weather == null && provider.error != null) {
               provider.fetchWeatherWithGPS();
@@ -348,98 +409,88 @@ class _HomeScreenState extends State<HomeScreen> {
               Navigator.pushNamed(context, '/weather');
             }
           },
-          child: AppCard(
-            gradient: AppColors.weatherGradient,
-            padding: const EdgeInsets.all(18),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.2),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Text(
-                                  l.currentWeather,
-                                  style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
-                                ),
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: AppColors.secondary.withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: AppColors.secondary.withValues(alpha: 0.3)),
                               ),
-                              const SizedBox(width: 8),
-                              GestureDetector(
-                                onTap: () => context.read<WeatherProvider>().fetchWeatherWithGPS(),
-                                child: Row(
-                                  children: [
-                                    const Icon(Icons.location_on_outlined, size: 14, color: Colors.white70),
-                                    const SizedBox(width: 2),
-                                    Text(
-                                      w.location,
-                                      style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w500),
-                                    ),
-                                  ],
-                                ),
+                              child: Text(
+                                l.currentWeather,
+                                style: AppTextStyles.chip.copyWith(color: AppColors.secondaryLight),
                               ),
-                            ],
-                          ),
-                          const SizedBox(height: 6),
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.baseline,
-                            textBaseline: TextBaseline.alphabetic,
-                            children: [
-                              Text(
-                                '${w.temperature.toStringAsFixed(0)}°C',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 38,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                            ),
+                            const SizedBox(width: 8),
+                            GestureDetector(
+                              onTap: () => context.read<WeatherProvider>().fetchWeatherWithGPS(),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.location_on_outlined, size: 14, color: AppColors.textSecondary),
+                                  const SizedBox(width: 2),
+                                  Text(
+                                    w.location,
+                                    style: AppTextStyles.bodySmall,
+                                  ),
+                                ],
                               ),
-                              const SizedBox(width: 8),
-                              Text(
-                                w.condition,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.baseline,
+                          textBaseline: TextBaseline.alphabetic,
+                          children: [
+                            Text(
+                              '${w.temperature.toStringAsFixed(0)}°C',
+                              style: AppTextStyles.displayMedium.copyWith(color: AppColors.textPrimary),
+                            ),
+                            const SizedBox(width: 10),
+                            Text(
+                              w.condition,
+                              style: AppTextStyles.titleLarge.copyWith(color: AppColors.textSecondary),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                    Text(w.conditionIcon, style: const TextStyle(fontSize: 56)),
+                  ),
+                  Text(w.conditionIcon, style: const TextStyle(fontSize: 52)),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                decoration: BoxDecoration(
+                  color: AppColors.backgroundSecondary.withValues(alpha: 0.6),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _weatherStat('💧', '${w.humidity.toInt()}%', l.humidity),
+                    _weatherStatDivider(),
+                    _weatherStat('🌬️', '${w.windSpeed.toStringAsFixed(0)} km/h', l.windSpeed),
+                    _weatherStatDivider(),
+                    _weatherStat('🌧️', '${w.rainProbability.toInt()}%', l.rainProbability),
                   ],
                 ),
-                const SizedBox(height: 14),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.18),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _weatherStat('💧', '${w.humidity.toInt()}%', l.humidity),
-                      _weatherStatDivider(),
-                      _weatherStat('🌬️', '${w.windSpeed.toStringAsFixed(0)} km/h', l.windSpeed),
-                      _weatherStatDivider(),
-                      _weatherStat('🌧️', '${w.rainProbability.toInt()}%', l.rainProbability),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         );
       },
@@ -451,8 +502,8 @@ class _HomeScreenState extends State<HomeScreen> {
       children: [
         Text(emoji, style: const TextStyle(fontSize: 16)),
         const SizedBox(height: 2),
-        Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
-        Text(label, style: const TextStyle(color: Colors.white70, fontSize: 10)),
+        Text(value, style: AppTextStyles.titleSmall.copyWith(fontWeight: FontWeight.bold)),
+        Text(label, style: AppTextStyles.bodySmall),
       ],
     );
   }
@@ -461,7 +512,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Container(
       width: 1,
       height: 32,
-      color: Colors.white.withValues(alpha: 0.25),
+      color: AppColors.border,
     );
   }
 
@@ -469,9 +520,9 @@ class _HomeScreenState extends State<HomeScreen> {
     return Consumer<CropMonitorProvider>(
       builder: (context, provider, _) {
         final crops = provider.crops;
-        
+
         if (crops.isEmpty) {
-          return AppCard(
+          return GlassCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -484,16 +535,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: AppColors.primarySurface,
+                    color: AppColors.primaryDark.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: AppColors.primaryLight.withValues(alpha: 0.2)),
+                    border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
                   ),
                   child: Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(10),
+                        padding: const EdgeInsets.all(12),
                         decoration: const BoxDecoration(
-                          color: Colors.white,
+                          color: AppColors.cardBg,
                           shape: BoxShape.circle,
                         ),
                         child: const Text('🌱', style: TextStyle(fontSize: 28)),
@@ -535,12 +586,12 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 10),
             SizedBox(
-              height: 112,
+              height: 118,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 itemCount: crops.length,
                 itemBuilder: (context, i) => Container(
-                  width: 270,
+                  width: 280,
                   margin: const EdgeInsets.only(right: 12),
                   child: _buildSmallCropCard(crops[i], l),
                 ),
@@ -553,15 +604,17 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildSmallCropCard(CropMonitor crop, AppLocalizations l) {
-    return AppCard(
-      padding: const EdgeInsets.all(12),
+    return GlassCard(
+      padding: const EdgeInsets.all(14),
+      margin: EdgeInsets.zero,
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: AppColors.primarySurface,
+              color: AppColors.primaryDark.withValues(alpha: 0.25),
               borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.primary.withValues(alpha: 0.4)),
             ),
             child: const Text('🌾', style: TextStyle(fontSize: 26)),
           ),
@@ -596,9 +649,9 @@ class _HomeScreenState extends State<HomeScreen> {
       _QuickAction('🌱', l.recommendCrop, AppColors.primary, '/crop-recommend'),
       _QuickAction('🔍', l.scanPlant, AppColors.secondary, '/disease-scan'),
       _QuickAction('💧', l.irrigation, AppColors.accent, '/irrigation'),
-      _QuickAction('📊', l.marketPrices, AppColors.secondary, '/market'),
-      _QuickAction('🤖', l.askAI, AppColors.primaryDark, '/assistant'),
-      _QuickAction('⛅', l.weather, AppColors.rainy, '/weather'),
+      _QuickAction('📊', l.marketPrices, AppColors.secondaryLight, '/market'),
+      _QuickAction('🤖', l.askAI, AppColors.primaryLight, '/assistant'),
+      _QuickAction('⛅', l.weather, AppColors.info, '/weather'),
     ];
 
     return GridView.builder(
@@ -606,8 +659,8 @@ class _HomeScreenState extends State<HomeScreen> {
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
-        mainAxisSpacing: 12,
-        crossAxisSpacing: 12,
+        mainAxisSpacing: 14,
+        crossAxisSpacing: 14,
         childAspectRatio: 0.98,
       ),
       itemCount: actions.length,
@@ -618,29 +671,20 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildActionTile(_QuickAction action) {
     return GestureDetector(
       onTap: () => Navigator.pushNamed(context, action.route),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
-          boxShadow: [
-            BoxShadow(
-              color: action.color.withValues(alpha: 0.08),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
+      child: GlassCard(
+        padding: const EdgeInsets.all(12),
+        margin: EdgeInsets.zero,
+        borderColor: action.color.withValues(alpha: 0.3),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 44,
-              height: 44,
+              width: 46,
+              height: 46,
               decoration: BoxDecoration(
-                color: action.color.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(12),
+                color: action.color.withValues(alpha: 0.18),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: action.color.withValues(alpha: 0.4)),
               ),
               child: Center(child: Text(action.emoji, style: const TextStyle(fontSize: 24))),
             ),

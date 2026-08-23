@@ -1,6 +1,7 @@
 library widgets;
 
 export 'app_card.dart';
+export 'glass_card.dart';
 export 'app_button.dart';
 export 'app_text_field.dart';
 export 'app_dropdown.dart';
