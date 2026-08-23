@@ -38,14 +38,15 @@ Future<void> main() async {
 
   // Load environment variables safely
   try {
-    await dotenv.load(fileName: '.env');
+    await dotenv.load(fileName: "assets/.env");
   } catch (e) {
     try {
-      await dotenv.load(fileName: 'assets/.env');
+      await dotenv.load(fileName: ".env");
     } catch (e2) {
-      debugPrint('Dotenv loading fallback applied: $e2');
+      debugPrint("No .env file found. Proceeding with default values.");
     }
   }
+
 
   // Debug configuration
   AppConfig.debugPrintConfig();

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class AuthProvider extends ChangeNotifier {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  FirebaseAuth? _auth;
   User? _user;
   bool _isLoading = false;
   String? _error;
@@ -13,16 +13,26 @@ class AuthProvider extends ChangeNotifier {
   bool get isAuthenticated => _user != null;
 
   AuthProvider() {
-    _auth.authStateChanges().listen((User? user) {
-      _user = user;
-      notifyListeners();
-    });
+    try {
+      _auth = FirebaseAuth.instance;
+      _auth?.authStateChanges().listen((User? user) {
+        _user = user;
+        notifyListeners();
+      });
+    } catch (e) {
+      debugPrint('FirebaseAuth instance not initialized: $e');
+    }
   }
+
 
   Future<bool> signIn(String email, String password) async {
     _setLoading(true);
     try {
-      await _auth.signInWithEmailAndPassword(email: email, password: password);
+      if (_auth == null) {
+        _error = 'Firebase Auth not initialized.';
+        return false;
+      }
+      await _auth!.signInWithEmailAndPassword(email: email, password: password);
       _error = null;
       return true;
     } on FirebaseAuthException catch (e) {
@@ -39,7 +49,11 @@ class AuthProvider extends ChangeNotifier {
   Future<bool> signUp(String email, String password) async {
     _setLoading(true);
     try {
-      await _auth.createUserWithEmailAndPassword(email: email, password: password);
+      if (_auth == null) {
+        _error = 'Firebase Auth not initialized.';
+        return false;
+      }
+      await _auth!.createUserWithEmailAndPassword(email: email, password: password);
       _error = null;
       return true;
     } on FirebaseAuthException catch (e) {
@@ -54,12 +68,13 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> signOut() async {
-    await _auth.signOut();
+    await _auth?.signOut();
   }
 
   Future<bool> sendPasswordReset(String email) async {
     try {
-      await _auth.sendPasswordResetEmail(email: email);
+      if (_auth == null) return false;
+      await _auth!.sendPasswordResetEmail(email: email);
       return true;
     } catch (e) {
       _error = 'Failed to send reset email. Check if email is correct.';
@@ -67,6 +82,7 @@ class AuthProvider extends ChangeNotifier {
       return false;
     }
   }
+
 
   void _setLoading(bool value) {
     _isLoading = value;
