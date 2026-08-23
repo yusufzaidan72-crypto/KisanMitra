@@ -194,7 +194,7 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
             Container(
               width: 32,
               height: 32,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: AppColors.primarySurface,
                 shape: BoxShape.circle,
               ),
@@ -250,7 +250,7 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
             Container(
               width: 32,
               height: 32,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: AppColors.primarySurface,
                 shape: BoxShape.circle,
               ),

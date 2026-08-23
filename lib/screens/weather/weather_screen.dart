@@ -238,7 +238,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Saved Locations / सुरक्षित स्थान', style: AppTextStyles.titleMedium),
+        Text('Saved Locations / सुरक्षित स्थान', style: AppTextStyles.titleMedium),
         const SizedBox(height: 8),
         SizedBox(
           height: 40,
