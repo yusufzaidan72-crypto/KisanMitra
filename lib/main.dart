@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -31,10 +32,22 @@ Future<void> main() async {
 
   // Initialize Firebase
   try {
-    await Firebase.initializeApp();
+    if (kIsWeb) {
+      await Firebase.initializeApp(
+        options: const FirebaseOptions(
+          apiKey: "PLACEHOLDER_API_KEY", // Replace with empty string if not available
+          appId: "PLACEHOLDER_APP_ID",
+          messagingSenderId: "PLACEHOLDER_SENDER_ID",
+          projectId: "PLACEHOLDER_PROJECT_ID",
+        ),
+      );
+    } else {
+      await Firebase.initializeApp();
+    }
   } catch (e) {
-    debugPrint('Firebase Initialization Error: $e');
+    debugPrint("Firebase initialization error: $e");
   }
+
 
   // Load environment variables safely
   try {
