@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 /// Premium Instagram/WhatsApp style Animated Splash Screen for KisanMitra AI
 class SplashScreen extends StatefulWidget {
@@ -74,14 +75,24 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                         ),
                       ],
                     ),
-                    child: ClipOval(
-                      child: Image.asset(
-                        'assets/images/app_logo.png',
-                        width: 102,
-                        height: 102,
-                        fit: BoxFit.cover,
+                    child: Container(
+                      width: 102,
+                      height: 102,
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Color(0xFF10B981), Color(0xFF06B6D4)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        LucideIcons.sprout,
+                        color: Colors.white,
+                        size: 52,
                       ),
                     ),
+
                   ),
                 ),
               ),

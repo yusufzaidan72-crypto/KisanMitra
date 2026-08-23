@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../utils/utils.dart';
 import '../../providers/app_providers.dart';
@@ -61,12 +62,21 @@ class _LanguageSelectScreenState extends State<LanguageSelectScreen> {
               ),
             ],
           ),
-          child: ClipOval(
-            child: Image.asset(
-              'assets/images/app_logo.png',
-              width: 96,
-              height: 96,
-              fit: BoxFit.cover,
+          child: Container(
+            width: 96,
+            height: 96,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF10B981), Color(0xFF06B6D4)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              LucideIcons.sprout,
+              color: Colors.white,
+              size: 48,
             ),
           ),
         ),
