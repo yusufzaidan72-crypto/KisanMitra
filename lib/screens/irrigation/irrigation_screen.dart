@@ -1,12 +1,19 @@
+import 'dart:ui';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
-import '../../models/irrigation_advice.dart';
-import '../../providers/farmer_provider.dart';
-import '../../providers/app_providers.dart';
-import '../../services/demo/demo_irrigation_service.dart';
-import '../../utils/utils.dart';
-import '../../widgets/common/app_widgets.dart';
+
 import '../../localization/app_localizations.dart';
+import '../../models/irrigation_advice.dart';
+import '../../providers/app_providers.dart';
+import '../../providers/farmer_provider.dart';
+import '../../services/demo/demo_irrigation_service.dart';
+import '../../utils/app_constants.dart';
+import '../../utils/lovable_colors.dart';
+import '../../widgets/lovable_glass.dart';
+import '../../widgets/widgets.dart';
 
 class IrrigationScreen extends StatefulWidget {
   const IrrigationScreen({super.key});
@@ -54,128 +61,104 @@ class _IrrigationScreenState extends State<IrrigationScreen> {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text(l.irrigationAdvisor)),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            _buildHeader(l),
-            const SizedBox(height: 16),
-            AppCard(
-              child: Column(
-                children: [
-                  AppDropdown<String>(
-                    label: l.currentCropLabel,
-                    value: _selectedCrop,
-                    items: AppConstants.commonCrops,
-                    itemLabel: (s) => s,
-                    prefixIcon: const Icon(Icons.spa_outlined),
-                    onChanged: (v) => setState(() => _selectedCrop = v),
-                  ),
-                  const SizedBox(height: 12),
-                  AppDropdown<String>(
-                    label: l.growthStage,
-                    value: _selectedStage,
-                    items: AppConstants.growthStages,
-                    itemLabel: (s) => s,
-                    prefixIcon: const Icon(Icons.trending_up_outlined),
-                    onChanged: (v) => setState(() => _selectedStage = v),
-                  ),
-                  const SizedBox(height: 12),
-                  AppDropdown<String>(
-                    label: l.soilType,
-                    value: _selectedSoil,
-                    items: AppConstants.soilTypes,
-                    itemLabel: (s) => s,
-                    prefixIcon: const Icon(Icons.grass_outlined),
-                    onChanged: (v) => setState(() => _selectedSoil = v),
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: AppTextField(
-                          label: l.recentRainfall,
-                          controller: _rainfallCtrl,
-                          keyboardType: TextInputType.number,
-                          prefixIcon: const Icon(Icons.water_drop_outlined),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: AppTextField(
-                          label: 'Temp (°C)',
-                          controller: _tempCtrl,
-                          keyboardType: TextInputType.number,
-                          prefixIcon: const Icon(Icons.thermostat_outlined),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  AppTextField(
-                    label: 'Humidity (%)',
-                    controller: _humidityCtrl,
-                    keyboardType: TextInputType.number,
-                    prefixIcon: const Icon(Icons.opacity_outlined),
-                  ),
-                  const SizedBox(height: 12),
-                  AppDropdown<String>(
-                    label: l.isHindi ? 'मौसम पूर्वानुमान' : 'Weather Forecast',
-                    value: _selectedForecast,
-                    items: [l.forecastClear, l.forecastCloudy, l.forecastHeavyRain, l.forecastLightRain],
-                    itemLabel: (s) => s,
-                    prefixIcon: const Icon(Icons.wb_cloudy_outlined),
-                    onChanged: (v) => setState(() => _selectedForecast = v),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            AppButton(
-              label: l.getAdvice,
-              onPressed: _getAdvice,
-              isLoading: _isLoading,
-              width: double.infinity,
-              icon: Icons.water_drop_outlined,
-            ),
-            if (_advice != null) ...[
-              const SizedBox(height: 24),
-              _buildAdviceCard(l, _advice!),
-            ],
-            const SizedBox(height: 80),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeader(AppLocalizations l) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.accentLight,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.accent.withValues(alpha: 0.3)),
-      ),
-      child: Row(
+      backgroundColor: const Color(0xFFF0FDF4),
+      body: Stack(
+        fit: StackFit.expand,
         children: [
-          const Text('💧', style: TextStyle(fontSize: 36)),
-          const SizedBox(width: 12),
-          Expanded(
+          // Background photo
+          CachedNetworkImage(
+            imageUrl: LovableColors.bgImageUrl,
+            fit: BoxFit.cover,
+            placeholder: (_, __) => Container(color: const Color(0xFFD1FAE5)),
+            errorWidget: (_, __, ___) => Container(color: const Color(0xFFD1FAE5)),
+          ),
+
+          // Gradient overlay
+          Container(
+            decoration: const BoxDecoration(gradient: LovableColors.bgOverlay),
+          ),
+
+          // Content
+          SafeArea(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(l.irrigationAdvisor,
-                    style: AppTextStyles.titleMedium
-                        .copyWith(color: AppColors.accent)),
-                const SizedBox(height: 2),
-                Text(
-                  l.isHindi
-                      ? 'सही समय पर सिंचाई करें, पानी बचाएं'
-                      : 'Irrigate at the right time, save water',
-                  style: const TextStyle(
-                      color: AppColors.textSecondary, fontSize: 12),
+                _buildHeader(l),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    child: Column(
+                      children: [
+                        LovableGlassCard(
+                          strong: true,
+                          padding: const EdgeInsets.all(20),
+                          child: Column(
+                            children: [
+                              AppDropdown<String>(
+                                label: l.currentCropLabel,
+                                value: _selectedCrop,
+                                items: AppConstants.commonCrops,
+                                itemLabel: (s) => s,
+                                prefixIcon: const Icon(LucideIcons.sprout, size: 18),
+                                onChanged: (v) => setState(() => _selectedCrop = v),
+                              ),
+                              const SizedBox(height: 12),
+                              AppDropdown<String>(
+                                label: l.growthStage,
+                                value: _selectedStage,
+                                items: AppConstants.growthStages,
+                                itemLabel: (s) => s,
+                                prefixIcon: const Icon(LucideIcons.trendingUp, size: 18),
+                                onChanged: (v) => setState(() => _selectedStage = v),
+                              ),
+                              const SizedBox(height: 12),
+                              AppDropdown<String>(
+                                label: l.soilType,
+                                value: _selectedSoil,
+                                items: AppConstants.soilTypes,
+                                itemLabel: (s) => s,
+                                prefixIcon: const Icon(LucideIcons.layers, size: 18),
+                                onChanged: (v) => setState(() => _selectedSoil = v),
+                              ),
+                              const SizedBox(height: 12),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: AppTextField(
+                                      label: l.recentRainfall,
+                                      controller: _rainfallCtrl,
+                                      keyboardType: TextInputType.number,
+                                      prefixIcon: const Icon(LucideIcons.droplets, size: 18),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: AppTextField(
+                                      label: 'Temp (°C)',
+                                      controller: _tempCtrl,
+                                      keyboardType: TextInputType.number,
+                                      prefixIcon: const Icon(LucideIcons.thermometer, size: 18),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 20),
+                              CtaButton(
+                                label: l.getAdvice,
+                                icon: LucideIcons.droplet,
+                                width: double.infinity,
+                                onTap: _getAdvice,
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (_advice != null) ...[
+                          const SizedBox(height: 24),
+                          _buildAdviceCard(l, _advice!),
+                        ],
+                        const SizedBox(height: 40),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -185,135 +168,113 @@ class _IrrigationScreenState extends State<IrrigationScreen> {
     );
   }
 
-  Widget _buildAdviceCard(AppLocalizations l, IrrigationAdvice advice) {
-    final isRecommended = advice.irrigationRecommended;
-    final mainColor = isRecommended ? AppColors.accent : AppColors.success;
-    final bgColor = isRecommended
-        ? AppColors.accentLight
-        : AppColors.success.withValues(alpha: 0.08);
-
-    return Column(
-      children: [
-        AppCard(
-          backgroundColor: bgColor,
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 64,
-                    height: 64,
-                    decoration: BoxDecoration(
-                      color: mainColor.withValues(alpha: 0.15),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Center(
-                      child: Text(
-                        isRecommended ? '💧' : '✅',
-                        style: const TextStyle(fontSize: 32),
-                      ),
-                    ),
+  Widget _buildHeader(AppLocalizations l) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(50),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 28, sigmaY: 28),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: LovableColors.glassStrong,
+              borderRadius: BorderRadius.circular(50),
+              border: Border.all(color: LovableColors.glassBorder),
+              boxShadow: LovableColors.shadowGlass,
+            ),
+            child: Row(
+              children: [
+                IconButton(
+                  icon: const Icon(LucideIcons.arrowLeft, color: LovableColors.forest),
+                  onPressed: () => Navigator.pop(context),
+                ),
+                Text(
+                  l.irrigationAdvisor,
+                  style: GoogleFonts.outfit(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: LovableColors.forest,
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          isRecommended
-                              ? l.irrigationRecommended
-                              : l.notRequired,
-                          style: TextStyle(
-                            color: mainColor,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(advice.reason,
-                            style: AppTextStyles.bodySmall),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              if (isRecommended) ...[
-                const SizedBox(height: 16),
-                const Divider(height: 1),
-                const SizedBox(height: 14),
-                _adviceRow(Icons.schedule_outlined, l.suggestedTiming,
-                    advice.timing, mainColor),
-                const SizedBox(height: 8),
-                _adviceRow(Icons.water_outlined, l.waterAmount,
-                    '${advice.waterAmount.toStringAsFixed(0)} mm', mainColor),
-                const SizedBox(height: 8),
-                _adviceRow(Icons.calendar_today_outlined, l.nextIrrigation,
-                    advice.nextIrrigationDate, mainColor),
-                const SizedBox(height: 8),
-                _adviceRow(Icons.agriculture_outlined, l.isHindi ? 'विधि' : 'Method',
-                    _methodLabel(advice.method, l), mainColor),
+                ),
               ],
-            ],
+            ),
           ),
         ),
-        const SizedBox(height: 12),
-        AppCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+      ),
+    );
+  }
+
+  Widget _buildAdviceCard(AppLocalizations l, IrrigationAdvice advice) {
+    final isRecommended = advice.irrigationRecommended;
+
+    return LovableGlassCard(
+      strong: true,
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        children: [
+          Row(
             children: [
-               Row(
-                children: [
-                  const Icon(Icons.lightbulb_outline, color: AppColors.secondary),
-                  const SizedBox(width: 8),
-                  Text(l.isHindi ? 'सिंचाई मार्गदर्शन' : 'Irrigation Guidance',
-                      style: const TextStyle(
-                          fontWeight: FontWeight.w600, fontSize: 15)),
-                ],
-              ),
-              const SizedBox(height: 12),
-              ...advice.generalGuidance.map(
-                (g) => Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Icon(Icons.check_circle_outline,
-                          color: AppColors.primary, size: 17),
-                      const SizedBox(width: 8),
-                      Expanded(
-                          child: Text(g, style: AppTextStyles.bodySmall)),
-                    ],
+              Container(
+                width: 54,
+                height: 54,
+                decoration: BoxDecoration(
+                  gradient: LovableColors.ctaGradient,
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Icon(
+                    isRecommended ? LucideIcons.droplets : LucideIcons.check,
+                    color: Colors.white,
+                    size: 24,
                   ),
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isRecommended ? l.irrigationRecommended : l.notRequired,
+                      style: GoogleFonts.outfit(
+                        color: isRecommended ? LovableColors.forest : LovableColors.positive,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    Text(
+                      advice.reason,
+                      style: GoogleFonts.plusJakartaSans(fontSize: 12, color: LovableColors.slateGreen),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
+          if (isRecommended) ...[
+            const Divider(height: 24, color: LovableColors.glassBorder),
+            _adviceRow(LucideIcons.clock, l.suggestedTiming, advice.timing),
+            const SizedBox(height: 8),
+            _adviceRow(LucideIcons.droplet, l.waterAmount, '${advice.waterAmount.toStringAsFixed(0)} mm'),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _adviceRow(IconData icon, String label, String value) {
+    return Row(
+      children: [
+        Icon(icon, color: LovableColors.emeraldAccent, size: 16),
+        const SizedBox(width: 8),
+        Text('$label: ', style: GoogleFonts.plusJakartaSans(fontSize: 13, color: LovableColors.slateGreen)),
+        Text(
+          value,
+          style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w700, color: LovableColors.forest),
         ),
       ],
     );
-  }
-
-  Widget _adviceRow(IconData icon, String label, String value, Color color) {
-    return Row(
-      children: [
-        Icon(icon, color: color, size: 18),
-        const SizedBox(width: 10),
-        Text('$label: ', style: AppTextStyles.bodySmall),
-        Text(value,
-            style: AppTextStyles.bodySmall.copyWith(
-                fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-      ],
-    );
-  }
-
-  String _methodLabel(IrrigationMethod m, AppLocalizations l) {
-    return switch (m) {
-      IrrigationMethod.drip => l.methodDrip,
-      IrrigationMethod.sprinkler => l.methodSprinkler,
-      IrrigationMethod.flood => l.methodFlood,
-      IrrigationMethod.furrow => l.methodFurrow,
-      IrrigationMethod.none => l.notRequired,
-    };
   }
 
   Future<void> _getAdvice() async {

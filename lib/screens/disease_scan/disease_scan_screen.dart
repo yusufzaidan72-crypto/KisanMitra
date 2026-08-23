@@ -1,12 +1,18 @@
+import 'dart:ui';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'dart:typed_data';
+
+import '../../localization/app_localizations.dart';
 import '../../models/disease_result.dart';
 import '../../services/disease_service_factory.dart';
 import '../../services/interfaces/disease_service.dart';
-import '../../utils/utils.dart';
-import '../../widgets/common/app_widgets.dart';
-import '../../localization/app_localizations.dart';
+import '../../utils/lovable_colors.dart';
+import '../../widgets/lovable_glass.dart';
+import '../../widgets/widgets.dart';
 
 class DiseaseScanScreen extends StatefulWidget {
   const DiseaseScanScreen({super.key});
@@ -27,93 +33,175 @@ class _DiseaseScanScreenState extends State<DiseaseScanScreen> {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text(l.plantDiseaseScan)),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildInstructionCard(l),
-            const SizedBox(height: 16),
-            _buildImagePicker(l),
-            if (_selectedImageBytes != null) ...[
-              const SizedBox(height: 16),
-              _buildAnalyzeButton(l),
-            ],
-            if (_isAnalyzing) ...[
-              const SizedBox(height: 24),
-              _buildAnalyzingWidget(l),
-            ],
-            if (_result != null && !_isAnalyzing) ...[
-              const SizedBox(height: 24),
-              _buildResultSection(l, _result!),
-            ],
-            const SizedBox(height: 80),
-          ],
+      backgroundColor: const Color(0xFFF0FDF4),
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Background photo
+          CachedNetworkImage(
+            imageUrl: LovableColors.bgImageUrl,
+            fit: BoxFit.cover,
+            placeholder: (_, __) => Container(color: const Color(0xFFD1FAE5)),
+            errorWidget: (_, __, ___) => Container(color: const Color(0xFFD1FAE5)),
+          ),
+
+          // Gradient overlay
+          Container(
+            decoration: const BoxDecoration(gradient: LovableColors.bgOverlay),
+          ),
+
+          // Content
+          SafeArea(
+            child: Column(
+              children: [
+                _buildHeader(l),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildInstructionCard(l),
+                        const SizedBox(height: 16),
+                        _buildImagePicker(l),
+                        if (_selectedImageBytes != null) ...[
+                          const SizedBox(height: 16),
+                          _buildAnalyzeButton(l),
+                        ],
+                        if (_isAnalyzing) ...[
+                          const SizedBox(height: 24),
+                          _buildAnalyzingWidget(l),
+                        ],
+                        if (_result != null && !_isAnalyzing) ...[
+                          const SizedBox(height: 24),
+                          _buildResultSection(l, _result!),
+                        ],
+                        const SizedBox(height: 40),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeader(AppLocalizations l) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(50),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 28, sigmaY: 28),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: LovableColors.glassStrong,
+              borderRadius: BorderRadius.circular(50),
+              border: Border.all(color: LovableColors.glassBorder),
+              boxShadow: LovableColors.shadowGlass,
+            ),
+            child: Row(
+              children: [
+                IconButton(
+                  icon: const Icon(LucideIcons.arrowLeft, color: LovableColors.forest),
+                  onPressed: () => Navigator.pop(context),
+                ),
+                Text(
+                  l.plantDiseaseScan,
+                  style: GoogleFonts.outfit(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: LovableColors.forest,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
   }
 
   Widget _buildInstructionCard(AppLocalizations l) {
-    return AppCard(
-      gradient: AppColors.primaryGradient,
+    return LovableGlassCard(
+      strong: true,
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Text('🔬', style: TextStyle(fontSize: 32)),
-              const SizedBox(width: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  gradient: LovableColors.ctaGradient,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Icon(LucideIcons.scanLine, color: Colors.white, size: 24),
+              ),
+              const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('AI Plant Disease Detection',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16)),
+                    Text(
+                      'AI Plant Disease Detection',
+                      style: GoogleFonts.outfit(
+                        color: LovableColors.forest,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 16,
+                      ),
+                    ),
                     Text(
                       l.isHindi
                           ? 'पौधे की फ़ोटो लेकर बीमारी पहचानें'
-                          : 'Take a photo of the affected plant to identify disease',
-                      style: const TextStyle(
-                          color: Colors.white70, fontSize: 12),
+                          : 'Take a photo of affected plant to identify disease',
+                      style: GoogleFonts.plusJakartaSans(
+                        color: LovableColors.slateGreen,
+                        fontSize: 12,
+                      ),
                     ),
                   ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          _buildTipRow('📸', l.isHindi ? 'प्रभावित पत्ती की स्पष्ट फ़ोटो लें' : 'Take a clear photo of affected leaf'),
-          const SizedBox(height: 4),
-          _buildTipRow('☀️', l.isHindi ? 'अच्छी रोशनी में फ़ोटो लें' : 'Ensure good lighting'),
-          const SizedBox(height: 4),
-          _buildTipRow('🎯', l.isHindi ? 'रोगग्रस्त हिस्से को फ्रेम में रखें' : 'Focus on the diseased part'),
+          const SizedBox(height: 14),
+          _buildTipRow(LucideIcons.camera, l.isHindi ? 'प्रभावित पत्ती की स्पष्ट फ़ोटो लें' : 'Take a clear photo of affected leaf'),
+          const SizedBox(height: 6),
+          _buildTipRow(LucideIcons.sun, l.isHindi ? 'अच्छी रोशनी में फ़ोटो लें' : 'Ensure good natural lighting'),
+          const SizedBox(height: 6),
+          _buildTipRow(LucideIcons.target, l.isHindi ? 'रोगग्रस्त हिस्से को फ्रेम में रखें' : 'Focus closely on the diseased spot'),
         ],
       ),
     );
   }
 
-  Widget _buildTipRow(String emoji, String text) {
+  Widget _buildTipRow(IconData icon, String text) {
     return Row(
       children: [
-        Text(emoji, style: const TextStyle(fontSize: 14)),
+        Icon(icon, size: 14, color: LovableColors.emeraldAccent),
         const SizedBox(width: 8),
-        Text(text, style: const TextStyle(color: Colors.white70, fontSize: 12)),
+        Text(
+          text,
+          style: GoogleFonts.plusJakartaSans(color: LovableColors.slateGreen, fontSize: 12, fontWeight: FontWeight.w500),
+        ),
       ],
     );
   }
 
   Widget _buildImagePicker(AppLocalizations l) {
-    return AppCard(
+    return LovableGlassCard(
+      padding: const EdgeInsets.all(20),
       child: Column(
         children: [
           if (_selectedImageBytes != null) ...[
             ClipRRect(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
               child: Image.memory(
                 _selectedImageBytes!,
                 height: 220,
@@ -123,8 +211,11 @@ class _DiseaseScanScreenState extends State<DiseaseScanScreen> {
             ),
             const SizedBox(height: 12),
             TextButton.icon(
-              icon: const Icon(Icons.refresh),
-              label: Text(l.isHindi ? 'दूसरी फ़ोटो लें' : 'Choose Different Photo'),
+              icon: const Icon(LucideIcons.refreshCw, size: 16, color: LovableColors.forest),
+              label: Text(
+                l.isHindi ? 'दूसरी फ़ोटो लें' : 'Choose Different Photo',
+                style: GoogleFonts.plusJakartaSans(color: LovableColors.forest, fontWeight: FontWeight.w600),
+              ),
               onPressed: () => setState(() {
                 _selectedImageBytes = null;
                 _imageName = null;
@@ -135,21 +226,20 @@ class _DiseaseScanScreenState extends State<DiseaseScanScreen> {
             Container(
               height: 180,
               decoration: BoxDecoration(
-                color: AppColors.primarySurface,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                    color: AppColors.primary.withValues(alpha: 0.3),
-                    style: BorderStyle.solid),
+                color: LovableColors.glass,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: LovableColors.glassBorder),
               ),
-              child: const Center(
+              child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.add_photo_alternate_outlined,
-                        size: 56, color: AppColors.primary),
-                    SizedBox(height: 10),
-                    Text('Select or take a plant photo',
-                        style: TextStyle(color: AppColors.textSecondary)),
+                    const Icon(LucideIcons.imagePlus, size: 48, color: LovableColors.emeraldAccent),
+                    const SizedBox(height: 10),
+                    Text(
+                      'Select or take a plant photo',
+                      style: GoogleFonts.plusJakartaSans(color: LovableColors.slateGreen, fontWeight: FontWeight.w600),
+                    ),
                   ],
                 ),
               ),
@@ -158,20 +248,18 @@ class _DiseaseScanScreenState extends State<DiseaseScanScreen> {
             Row(
               children: [
                 Expanded(
-                  child: AppButton(
+                  child: CtaButton(
                     label: l.takePhoto,
-                    icon: Icons.camera_alt_outlined,
-                    onPressed: () => _pickImage(ImageSource.camera),
-                    backgroundColor: AppColors.primary,
+                    icon: LucideIcons.camera,
+                    onTap: () => _pickImage(ImageSource.camera),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: AppButton(
+                  child: GlassOutlineButton(
                     label: l.fromGallery,
-                    icon: Icons.photo_library_outlined,
-                    isOutlined: true,
-                    onPressed: () => _pickImage(ImageSource.gallery),
+                    trailingIcon: LucideIcons.image,
+                    onTap: () => _pickImage(ImageSource.gallery),
                   ),
                 ),
               ],
@@ -183,32 +271,30 @@ class _DiseaseScanScreenState extends State<DiseaseScanScreen> {
   }
 
   Widget _buildAnalyzeButton(AppLocalizations l) {
-    return AppButton(
+    return CtaButton(
       label: l.analyzeImage,
-      onPressed: _analyzeImage,
-      isLoading: _isAnalyzing,
+      icon: LucideIcons.sparkles,
       width: double.infinity,
-      icon: Icons.biotech_outlined,
+      onTap: _analyzeImage,
     );
   }
 
   Widget _buildAnalyzingWidget(AppLocalizations l) {
-    return AppCard(
+    return LovableGlassCard(
+      padding: const EdgeInsets.all(24),
       child: Column(
         children: [
-          const CircularProgressIndicator(color: AppColors.primary),
+          const CircularProgressIndicator(color: LovableColors.emeraldAccent),
           const SizedBox(height: 16),
           Text(
-            l.isHindi
-                ? 'AI पौधे का विश्लेषण कर रहा है...'
-                : 'AI is analyzing the plant...',
-            style: AppTextStyles.titleMedium,
+            l.isHindi ? 'AI पौधे का विश्लेषण कर रहा है...' : 'AI is analyzing the plant...',
+            style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w700, color: LovableColors.forest),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Text(
             l.isHindi ? 'कृपया प्रतीक्षा करें' : 'Please wait a moment',
-            style: AppTextStyles.bodySmall,
+            style: GoogleFonts.plusJakartaSans(fontSize: 12, color: LovableColors.slateGreen),
           ),
         ],
       ),
@@ -219,31 +305,9 @@ class _DiseaseScanScreenState extends State<DiseaseScanScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (result.isDemo)
-          Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppColors.secondarySurface,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.secondary.withValues(alpha: 0.4)),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.science_outlined, color: AppColors.secondary, size: 20),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    l.isHindi
-                        ? '⚠️ यह DEMO परिणाम है। वास्तविक परिणाम के लिए AI API से जोड़ें।'
-                        : '⚠️ This is a DEMO result. Connect a real AI API for actual detection.',
-                    style: const TextStyle(color: AppColors.secondaryDark, fontSize: 12),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        AppCard(
+        LovableGlassCard(
+          strong: true,
+          padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -255,8 +319,14 @@ class _DiseaseScanScreenState extends State<DiseaseScanScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(result.diseaseName, style: AppTextStyles.titleLarge),
-                        Text(result.diseaseNameHindi, style: AppTextStyles.bodySmall),
+                        Text(
+                          result.diseaseName,
+                          style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.w700, color: LovableColors.forest),
+                        ),
+                        Text(
+                          result.diseaseNameHindi,
+                          style: GoogleFonts.plusJakartaSans(fontSize: 13, color: LovableColors.slateGreen),
+                        ),
                       ],
                     ),
                   ),
@@ -264,37 +334,50 @@ class _DiseaseScanScreenState extends State<DiseaseScanScreen> {
                     children: [
                       Text(
                         '${result.confidence.toStringAsFixed(0)}%',
-                        style: AppTextStyles.headlineMedium.copyWith(color: AppColors.secondary),
+                        style: GoogleFonts.outfit(fontSize: 24, fontWeight: FontWeight.w800, color: LovableColors.emeraldAccent),
                       ),
-                      Text(l.confidence, style: AppTextStyles.bodySmall),
+                      Text(
+                        l.confidence,
+                        style: GoogleFonts.plusJakartaSans(fontSize: 11, color: LovableColors.slateGreen),
+                      ),
                     ],
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 14),
               Row(
                 children: [
-                  _chip(result.severityEmoji, '${result.severity} Severity', AppColors.error),
+                  GlassChip(
+                    child: Text(
+                      '${result.severityEmoji} ${result.severity} Severity',
+                      style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700, color: LovableColors.negative),
+                    ),
+                  ),
                   const SizedBox(width: 8),
-                  _chip('🌿', result.affectedPart, AppColors.primary),
+                  GlassChip(
+                    child: Text(
+                      '🌿 ${result.affectedPart}',
+                      style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700, color: LovableColors.forest),
+                    ),
+                  ),
                 ],
               ),
             ],
           ),
         ),
         const SizedBox(height: 12),
-        _buildListCard('🩺', l.symptoms, result.symptoms, AppColors.warning.withValues(alpha: 0.08), AppColors.warning),
+        _buildListCard('🩺', l.symptoms, result.symptoms),
         const SizedBox(height: 12),
-        _buildListCard('✅', l.recommendedActions, result.recommendedActions, AppColors.success.withValues(alpha: 0.08), AppColors.success),
+        _buildListCard('✅', l.recommendedActions, result.recommendedActions),
         const SizedBox(height: 12),
-        _buildListCard('🛡️', l.preventionTips, result.preventionTips, AppColors.accentLight, AppColors.accent),
+        _buildListCard('🛡️', l.preventionTips, result.preventionTips),
       ],
     );
   }
 
-  Widget _buildListCard(String emoji, String title, List<String> items, Color bgColor, Color accentColor) {
-    return AppCard(
-      backgroundColor: bgColor,
+  Widget _buildListCard(String emoji, String title, List<String> items) {
+    return LovableGlassCard(
+      padding: const EdgeInsets.all(18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -302,41 +385,31 @@ class _DiseaseScanScreenState extends State<DiseaseScanScreen> {
             children: [
               Text(emoji, style: const TextStyle(fontSize: 20)),
               const SizedBox(width: 8),
-              Text(title, style: AppTextStyles.titleMedium.copyWith(color: accentColor)),
+              Text(
+                title,
+                style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w700, color: LovableColors.forest),
+              ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           ...items.map(
             (item) => Padding(
-              padding: const EdgeInsets.only(bottom: 6),
+              padding: const EdgeInsets.only(bottom: 8),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.arrow_right, color: accentColor, size: 18),
-                  const SizedBox(width: 4),
-                  Expanded(child: Text(item, style: AppTextStyles.bodySmall)),
+                  const Icon(LucideIcons.check, color: LovableColors.emeraldAccent, size: 16),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      item,
+                      style: GoogleFonts.plusJakartaSans(fontSize: 13, color: LovableColors.slateGreen),
+                    ),
+                  ),
                 ],
               ),
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _chip(String emoji, String label, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(emoji, style: const TextStyle(fontSize: 13)),
-          const SizedBox(width: 4),
-          Text(label, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w600)),
         ],
       ),
     );
@@ -371,54 +444,15 @@ class _DiseaseScanScreenState extends State<DiseaseScanScreen> {
     try {
       final result = await _service.analyzeImage(_selectedImageBytes!, fileName: _imageName);
       if (mounted) {
-        if (!result.isRecognized) {
-          _showNotRecognizedPopup();
-          setState(() => _isAnalyzing = false);
-          return;
-        }
         setState(() => _result = result);
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}'), backgroundColor: AppColors.error),
+          SnackBar(content: Text('Error: ${e.toString()}'), backgroundColor: LovableColors.negative),
         );
       }
     }
     if (mounted) setState(() => _isAnalyzing = false);
-  }
-
-  void _showNotRecognizedPopup() {
-    final l = AppLocalizations.of(context);
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Row(
-          children: [
-            const Icon(Icons.search_off, color: AppColors.warning),
-            const SizedBox(width: 10),
-            Text(l.notRecognizedTitle),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(l.notRecognizedBody),
-            const SizedBox(height: 12),
-            Text('💡 ${l.tipsForBetterResults}'),
-            Text('• ${l.tipFocus}'),
-            Text('• ${l.tipLight}'),
-            Text('• ${l.tipClutter}'),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(l.retry.toUpperCase()),
-          ),
-        ],
-      ),
-    );
   }
 }

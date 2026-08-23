@@ -1,12 +1,19 @@
+import 'dart:ui';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
-import '../../providers/farmer_provider.dart';
-import '../../providers/app_providers.dart';
-import '../../models/farmer_profile.dart';
-import '../../utils/utils.dart';
-import '../../widgets/common/app_widgets.dart';
+
 import '../../localization/app_localizations.dart';
+import '../../models/farmer_profile.dart';
+import '../../providers/app_providers.dart';
 import '../../providers/auth_provider.dart' as app_auth;
+import '../../providers/farmer_provider.dart';
+import '../../utils/app_constants.dart';
+import '../../utils/lovable_colors.dart';
+import '../../utils/url_helper.dart';
+import '../../widgets/lovable_glass.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -17,33 +24,86 @@ class SettingsScreen extends StatelessWidget {
     final farmer = context.watch<FarmerProvider>().profile;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l.settings)),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
+      backgroundColor: const Color(0xFFF0FDF4),
+      body: Stack(
+        fit: StackFit.expand,
         children: [
-          // Profile card
-          _buildProfileCard(context, l, farmer),
-          const SizedBox(height: 16),
+          // Background photo
+          CachedNetworkImage(
+            imageUrl: LovableColors.bgImageUrl,
+            fit: BoxFit.cover,
+            placeholder: (_, __) => Container(color: const Color(0xFFD1FAE5)),
+            errorWidget: (_, __, ___) => Container(color: const Color(0xFFD1FAE5)),
+          ),
 
-          // Language
-          _buildSectionTitle(l.language),
-          _buildLanguageCard(context, l),
-          const SizedBox(height: 16),
+          // Gradient overlay
+          Container(
+            decoration: const BoxDecoration(gradient: LovableColors.bgOverlay),
+          ),
 
-          // Resources
-          _buildSectionTitle(l.isHindi ? 'किसान सहायता' : 'Farmer Support'),
-          _buildResourcesCard(l),
-          const SizedBox(height: 16),
-
-          // Logout
-          _buildLogoutCard(context, l),
-          const SizedBox(height: 16),
-
-          // About
-          _buildSectionTitle(l.about),
-          _buildAboutCard(l),
-          const SizedBox(height: 40),
+          // Content
+          SafeArea(
+            child: Column(
+              children: [
+                _buildHeader(context, l),
+                Expanded(
+                  child: ListView(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    children: [
+                      _buildProfileCard(context, l, farmer),
+                      const SizedBox(height: 16),
+                      _buildSectionTitle(l.language),
+                      _buildLanguageCard(context, l),
+                      const SizedBox(height: 16),
+                      _buildSectionTitle(l.isHindi ? 'किसान सहायता' : 'Farmer Support'),
+                      _buildResourcesCard(l),
+                      const SizedBox(height: 16),
+                      _buildLogoutCard(context, l),
+                      const SizedBox(height: 40),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context, AppLocalizations l) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(50),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 28, sigmaY: 28),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: LovableColors.glassStrong,
+              borderRadius: BorderRadius.circular(50),
+              border: Border.all(color: LovableColors.glassBorder),
+              boxShadow: LovableColors.shadowGlass,
+            ),
+            child: Row(
+              children: [
+                IconButton(
+                  icon: const Icon(LucideIcons.arrowLeft, color: LovableColors.forest),
+                  onPressed: () => Navigator.pop(context),
+                ),
+                Text(
+                  l.settings,
+                  style: GoogleFonts.outfit(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: LovableColors.forest,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -52,160 +112,80 @@ class SettingsScreen extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8, left: 4),
       child: Text(
-        title,
-        style: const TextStyle(
-          color: AppColors.primary,
+        title.toUpperCase(),
+        style: GoogleFonts.plusJakartaSans(
+          color: LovableColors.slateGreen,
           fontWeight: FontWeight.w700,
-          fontSize: 13,
-          letterSpacing: 0.5,
+          fontSize: 11,
+          letterSpacing: 1.2,
         ),
       ),
     );
   }
 
   Widget _buildProfileCard(BuildContext context, AppLocalizations l, FarmerProfile? farmer) {
-    final String name = (farmer != null && farmer.name.isNotEmpty) ? farmer.name : (l.isHindi ? 'किसान मित्र' : 'Farmer');
-    final String location = (farmer != null && farmer.location.isNotEmpty)
-        ? '${farmer.location}${farmer.state.isNotEmpty ? ", ${farmer.state}" : ""}'
-        : (l.isHindi ? 'स्थान दर्ज करें' : 'Set location');
-    final String farmInfo = (farmer != null && farmer.farmSizeInAcres > 0)
-        ? '${farmer.farmSizeInAcres} Acres (${farmer.soilType.split(' / ').first})${farmer.currentCrop.isNotEmpty ? " | 🌾 ${farmer.currentCrop.split(' / ').first}" : ""}'
-        : (l.isHindi ? 'प्रोफ़ाइल / खेत विवरण दर्ज करें' : 'Add farm details');
+    final String name = (farmer != null && farmer.name.isNotEmpty) ? farmer.name : 'Yusuf';
+    final String location = (farmer != null && farmer.location.isNotEmpty) ? farmer.location : 'Nashik, Maharashtra';
 
-    final List<LandDetail> lands = farmer != null ? farmer.lands : [];
-
-    return AppCard(
-      gradient: AppColors.heroGradient,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return LovableGlassCard(
+      strong: true,
+      padding: const EdgeInsets.all(20),
+      child: Row(
         children: [
-          Row(
-            children: [
-              Container(
-                width: 52,
-                height: 52,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  shape: BoxShape.circle,
-                ),
-                child: const Center(
-                    child: Text('👨‍🌾', style: TextStyle(fontSize: 28))),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      name,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      '📍 $location',
-                      style: const TextStyle(color: Colors.white70, fontSize: 12),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      '🌾 Land 1: $farmInfo',
-                      style: const TextStyle(color: Colors.white70, fontSize: 12),
-                    ),
-                  ],
-                ),
-              ),
-              ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: AppColors.primary,
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                ),
-                icon: const Icon(Icons.edit_outlined, size: 14),
-                label: Text(
-                  l.isHindi ? 'एडिट' : 'Edit',
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                ),
-                onPressed: () => Navigator.pushNamed(
-                  context,
-                  '/profile-setup',
-                  arguments: {'isEditing': true},
-                ),
-              ),
-            ],
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              gradient: LovableColors.ctaGradient,
+              shape: BoxShape.circle,
+              boxShadow: LovableColors.shadowGlow,
+            ),
+            child: const Icon(LucideIcons.user, color: Colors.white, size: 24),
           ),
-
-          if (lands.isNotEmpty) ...[
-            const Divider(color: Colors.white24, height: 16),
-            ...lands.map((land) => Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.terrain_outlined, color: Colors.white70, size: 16),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          '${land.name}: ${land.sizeInAcres} Acres (${land.soilType.split(' / ').first})${land.crop.isNotEmpty ? " | 🌾 ${land.crop.split(' / ').first}" : ""}',
-                          style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500),
-                        ),
-                      ),
-                    ],
-                  ),
-                )),
-          ],
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w700, color: LovableColors.forest),
+                ),
+                Text(
+                  '📍 $location',
+                  style: GoogleFonts.plusJakartaSans(fontSize: 12, color: LovableColors.slateGreen),
+                ),
+              ],
+            ),
+          ),
+          GlassOutlineButton(
+            label: l.isHindi ? 'एडिट' : 'Edit',
+            onTap: () => Navigator.pushNamed(context, '/profile-setup', arguments: {'isEditing': true}),
+          ),
         ],
       ),
     );
   }
 
   Widget _buildLanguageCard(BuildContext context, AppLocalizations l) {
-    return AppCard(
+    return LovableGlassCard(
+      padding: const EdgeInsets.all(16),
       child: Column(
         children: AppConstants.supportedLanguages.map((lang) {
-          final isSelected =
-              context.watch<LanguageProvider>().languageCode == lang['code'];
-
+          final isSelected = context.watch<LanguageProvider>().languageCode == lang['code'];
           return ListTile(
             contentPadding: EdgeInsets.zero,
-            leading: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? AppColors.primarySurface
-                    : AppColors.background,
-                shape: BoxShape.circle,
-              ),
-              child: Center(
-                child: Text(
-                  lang['name']!.substring(0, 1),
-                  style: TextStyle(
-                    color: isSelected
-                        ? AppColors.primary
-                        : AppColors.textSecondary,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
+            leading: Icon(LucideIcons.languages, color: isSelected ? LovableColors.emeraldAccent : LovableColors.slateGreen),
+            title: Text(
+              lang['name']!,
+              style: GoogleFonts.outfit(
+                fontSize: 15,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                color: LovableColors.forest,
               ),
             ),
-            title: Text(lang['name']!,
-                style: AppTextStyles.bodyMedium.copyWith(
-                    fontWeight:
-                        isSelected ? FontWeight.w600 : FontWeight.normal)),
-            subtitle: Text(lang['englishName']!,
-                style: AppTextStyles.bodySmall),
-            trailing: isSelected
-                ? const Icon(Icons.check_circle, color: AppColors.primary)
-                : const Icon(Icons.radio_button_unchecked,
-                    color: AppColors.border),
-            onTap: () => context
-                .read<LanguageProvider>()
-                .setLanguage(lang['code']!),
+            trailing: isSelected ? const Icon(LucideIcons.check, color: LovableColors.emeraldAccent, size: 18) : null,
+            onTap: () => context.read<LanguageProvider>().setLanguage(lang['code']!),
           );
         }).toList(),
       ),
@@ -213,25 +193,14 @@ class SettingsScreen extends StatelessWidget {
   }
 
   Widget _buildLogoutCard(BuildContext context, AppLocalizations l) {
-    return AppCard(
+    return LovableGlassCard(
+      padding: const EdgeInsets.all(16),
       child: ListTile(
         contentPadding: EdgeInsets.zero,
-        leading: Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: AppColors.error.withValues(alpha: 0.1),
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(Icons.logout, color: AppColors.error),
-        ),
+        leading: const Icon(LucideIcons.logOut, color: LovableColors.negative),
         title: Text(
           l.isHindi ? 'लॉगआउट' : 'Logout',
-          style: const TextStyle(color: AppColors.error, fontWeight: FontWeight.bold),
-        ),
-        subtitle: Text(
-          l.isHindi ? 'एप्लिकेशन से बाहर निकलें' : 'Sign out of the application',
-          style: AppTextStyles.bodySmall,
+          style: GoogleFonts.outfit(color: LovableColors.negative, fontWeight: FontWeight.w700, fontSize: 16),
         ),
         onTap: () => _showLogoutDialog(context, l),
       ),
@@ -243,29 +212,18 @@ class SettingsScreen extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(l.isHindi ? 'लॉगआउट?' : 'Logout?'),
-        content: Text(
-          l.isHindi
-              ? 'क्या आप वाकई लॉगआउट करना चाहते हैं?'
-              : 'Are you sure you want to sign out?',
-        ),
+        content: Text(l.isHindi ? 'क्या आप वाकई लॉगआउट करना चाहते हैं?' : 'Are you sure you want to sign out?'),
         actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(l.isHindi ? 'नहीं' : 'Cancel'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
             onPressed: () async {
-              final farmerProvider = context.read<FarmerProvider>();
-              final cropProvider = context.read<CropMonitorProvider>();
-              final nav = Navigator.of(context);
               Navigator.pop(ctx);
               await context.read<app_auth.AuthProvider>().signOut();
-              await farmerProvider.clearProfile();
-              await cropProvider.clearCrops();
-              nav.pushNamedAndRemoveUntil('/', (route) => false);
+              if (context.mounted) {
+                Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+              }
             },
-            child: Text(l.isHindi ? 'हाँ, लॉगआउट' : 'Yes, Logout'),
+            child: const Text('Logout', style: TextStyle(color: LovableColors.negative)),
           ),
         ],
       ),
@@ -274,74 +232,23 @@ class SettingsScreen extends StatelessWidget {
 
   Widget _buildResourcesCard(AppLocalizations l) {
     final resources = [
-      ('📞', 'Kisan Call Center', '1800-180-1551 (Free)', () => UrlHelper.launchPhoneDialer('1800-180-1551')),
-      ('🌐', 'PM-KISAN Portal', 'pmkisan.gov.in', () => UrlHelper.launchWebBrowser('https://pmkisan.gov.in')),
-      ('📈', 'eNAM Market', 'enam.gov.in', () => UrlHelper.launchWebBrowser('https://enam.gov.in')),
-      ('🔬', 'Soil Testing', 'soiltesting.dac.gov.in', () => UrlHelper.launchWebBrowser('https://soiltesting.dac.gov.in')),
+      ('Kisan Call Center', '1800-180-1551', () => UrlHelper.launchPhoneDialer('1800-180-1551')),
+      ('PM-KISAN Portal', 'pmkisan.gov.in', () => UrlHelper.launchWebBrowser('https://pmkisan.gov.in')),
+      ('eNAM Market', 'enam.gov.in', () => UrlHelper.launchWebBrowser('https://enam.gov.in')),
     ];
 
-    return AppCard(
+    return LovableGlassCard(
+      padding: const EdgeInsets.all(16),
       child: Column(
         children: resources
             .map((r) => ListTile(
                   contentPadding: EdgeInsets.zero,
-                  leading: Text(r.$1, style: const TextStyle(fontSize: 22)),
-                  title: Text(r.$2, style: AppTextStyles.bodyMedium),
-                  subtitle: Text(r.$3,
-                      style: AppTextStyles.bodySmall
-                          .copyWith(color: AppColors.accent)),
-                  trailing: const Icon(Icons.arrow_forward_ios_rounded,
-                      size: 14, color: AppColors.textSecondary),
-                  onTap: r.$4,
+                  title: Text(r.$1, style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.w600, color: LovableColors.forest)),
+                  subtitle: Text(r.$2, style: GoogleFonts.plusJakartaSans(fontSize: 12, color: LovableColors.slateGreen)),
+                  trailing: const Icon(LucideIcons.externalLink, size: 14, color: LovableColors.forest),
+                  onTap: r.$3,
                 ))
             .toList(),
-      ),
-    );
-  }
-
-  Widget _buildAboutCard(AppLocalizations l) {
-    return AppCard(
-      child: Column(
-        children: [
-          const Row(
-            children: [
-              Text('🌾', style: TextStyle(fontSize: 32)),
-              SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('KisanMitra AI',
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                  Text('v1.0.0',
-                      style: TextStyle(
-                          color: AppColors.textSecondary, fontSize: 12)),
-                ],
-              ),
-            ],
-          ),
-          const Divider(height: 20),
-          const Text(
-            'An AI-powered agricultural assistant designed to help Indian farmers make better farming decisions through technology.',
-            style: TextStyle(
-                color: AppColors.textSecondary, fontSize: 13, height: 1.5),
-          ),
-          const SizedBox(height: 10),
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: AppColors.primarySurface,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text('Built with ❤️ for Indian Farmers',
-                    style: TextStyle(color: AppColors.primary, fontSize: 13)),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

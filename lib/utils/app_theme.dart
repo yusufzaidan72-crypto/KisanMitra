@@ -155,6 +155,42 @@ class AppTheme {
     );
   }
 
-  // Alias lightTheme to darkTheme to maintain backward compatibility while defaulting to premium dark mode
-  static ThemeData get lightTheme => darkTheme;
+  static ThemeData get lightTheme {
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.light,
+      scaffoldBackgroundColor: const Color(0xFFF0FDF4),
+      colorScheme: const ColorScheme.light(
+        primary: Color(0xFF064E3B),
+        secondary: Color(0xFF10B981),
+        tertiary: Color(0xFF06B6D4),
+        surface: Color(0x73FFFFFF),
+        onSurface: Color(0xFF064E3B),
+      ),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Colors.transparent,
+        foregroundColor: Color(0xFF064E3B),
+        elevation: 0,
+        centerTitle: true,
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: const Color(0x73FFFFFF),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Color(0xBFFFFFFF)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Color(0xBFFFFFFF)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Color(0xFF10B981), width: 2),
+        ),
+      ),
+    );
+  }
+
 }

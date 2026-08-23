@@ -1,7 +1,6 @@
 import 'dart:ui';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:lucide_icons/lucide_icons.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -164,7 +163,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       shape: BoxShape.circle,
                       boxShadow: LovableColors.shadowGlow,
                     ),
-                    child: const Icon(LucideIcons.leaf, color: Colors.white, size: 18),
+                    child: const Icon(Icons.eco_rounded, color: Colors.white, size: 18),
                   ),
                   const SizedBox(width: 10),
                   Text(
@@ -290,7 +289,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(LucideIcons.sparkles, size: 14, color: LovableColors.emeraldAccent),
+              const Icon(Icons.auto_awesome, size: 14, color: LovableColors.emeraldAccent),
               const SizedBox(width: 6),
               Text(
                 'Kharif season insights are live',
@@ -370,7 +369,7 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             CtaButton(
               label: 'Scan Crop Disease',
-              icon: LucideIcons.scanLine,
+              icon: Icons.document_scanner_rounded,
               onTap: () => Navigator.pushNamed(context, '/disease-scan'),
             )
                 .animate()
@@ -379,7 +378,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
             GlassOutlineButton(
               label: 'View field report',
-              trailingIcon: LucideIcons.arrowUpRight,
+              trailingIcon: Icons.arrow_outward_rounded,
               onTap: () => Navigator.pushNamed(context, '/crop-monitor'),
             )
                 .animate()
@@ -545,7 +544,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(LucideIcons.alertTriangle, size: 16, color: LovableColors.negative),
+                    const Icon(Icons.warning_amber_rounded, size: 16, color: LovableColors.negative),
                     const SizedBox(width: 10),
                     Expanded(
                       child: RichText(
@@ -687,7 +686,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 CtaButton(
                   label: 'Open market',
-                  icon: LucideIcons.arrowUpRight,
+                  icon: Icons.arrow_outward_rounded,
                   onTap: () => Navigator.pushNamed(context, '/market'),
                 ),
               ],
@@ -717,7 +716,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   borderRadius: BorderRadius.circular(14),
                   boxShadow: LovableColors.shadowGlow,
                 ),
-                child: const Icon(LucideIcons.bot, color: Colors.white, size: 22),
+                child: const Icon(Icons.smart_toy_rounded, color: Colors.white, size: 22),
               ),
               const SizedBox(width: 12),
               Column(
@@ -763,7 +762,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
           CtaButton(
             label: 'Start a conversation',
-            icon: LucideIcons.arrowUpRight,
+            icon: Icons.arrow_outward_rounded,
             width: double.infinity,
             onTap: () => Navigator.pushNamed(context, '/assistant'),
           ),
@@ -845,7 +844,7 @@ class _MandiRowWidgetState extends State<_MandiRowWidget> {
                   Row(
                     children: [
                       Icon(
-                        widget.row.up ? LucideIcons.trendingUp : LucideIcons.trendingDown,
+                        widget.row.up ? Icons.trending_up : Icons.trending_down,
                         size: 12,
                         color: widget.row.up ? LovableColors.positive : LovableColors.negative,
                       ),

@@ -1,6 +1,5 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import '../screens/home/home_screen.dart';
 import '../screens/crop_monitor/crop_monitor_screen.dart';
@@ -99,11 +98,11 @@ class _MainNavigationState extends State<MainNavigation>
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _navItem(LucideIcons.home, LucideIcons.home, l.home, 0),
-                _navItem(LucideIcons.sprout, LucideIcons.sprout, l.crops, 1),
+                _navItem(Icons.home_outlined, Icons.home_rounded, l.home, 0),
+                _navItem(Icons.eco_outlined, Icons.eco_rounded, l.crops, 1),
                 _buildScanButton(l),
-                _navItem(LucideIcons.store, LucideIcons.store, l.market, 3),
-                _navItem(LucideIcons.bot, LucideIcons.bot, l.assistant, 4),
+                _navItem(Icons.storefront_outlined, Icons.storefront_rounded, l.market, 3),
+                _navItem(Icons.smart_toy_outlined, Icons.smart_toy_rounded, l.assistant, 4),
               ],
             ),
           ),
@@ -190,7 +189,7 @@ class _MainNavigationState extends State<MainNavigation>
               ],
             ),
             child: Icon(
-              LucideIcons.scanLine,
+              Icons.document_scanner_rounded,
               color: isActive ? AppColors.textOnPrimary : AppColors.primary,
               size: 24,
             ),
