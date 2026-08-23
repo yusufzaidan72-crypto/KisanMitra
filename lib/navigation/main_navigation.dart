@@ -67,38 +67,31 @@ class _MainNavigationState extends State<MainNavigation>
 
   Widget _buildFloatingBottomNav(AppLocalizations l) {
     return Container(
-      // Transparent outer container — the nav itself is the pill
       color: Colors.transparent,
       padding: EdgeInsets.fromLTRB(
-        20,
-        8,
-        20,
-        MediaQuery.of(context).padding.bottom + 12,
+        20, 8, 20, MediaQuery.of(context).padding.bottom + 12,
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(36),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
+          filter: ImageFilter.blur(sigmaX: 28, sigmaY: 28),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 300),
             height: 64,
             decoration: BoxDecoration(
-              color: AppColors.backgroundSecondary.withValues(alpha: 0.88),
+              // Eco light theme: white/62% matching --glass-strong
+              color: const Color(0x9EFFFFFF),
               borderRadius: BorderRadius.circular(36),
               border: Border.all(
-                color: AppColors.primary.withValues(alpha: 0.20),
+                color: const Color(0xBFFFFFFF),
                 width: 1,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.55),
-                  blurRadius: 30,
-                  offset: const Offset(0, 10),
-                ),
-                BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.06),
-                  blurRadius: 20,
-                  offset: const Offset(0, -4),
+                  color: const Color(0xFF065F46).withValues(alpha: 0.35),
+                  blurRadius: 50,
+                  spreadRadius: -20,
+                  offset: const Offset(0, 20),
                 ),
               ],
             ),
@@ -133,12 +126,12 @@ class _MainNavigationState extends State<MainNavigation>
               curve: Curves.easeOutCubic,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
               decoration: BoxDecoration(
-                color: isActive ? AppColors.primary.withValues(alpha: 0.18) : Colors.transparent,
+                color: isActive ? const Color(0xFF10B981).withValues(alpha: 0.18) : Colors.transparent,
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Icon(
                 isActive ? active : inactive,
-                color: isActive ? AppColors.primary : AppColors.textMuted,
+                color: isActive ? const Color(0xFF10B981) : const Color(0xFF2D6A50),
                 size: 22,
               ),
             ),
@@ -146,7 +139,7 @@ class _MainNavigationState extends State<MainNavigation>
             AnimatedDefaultTextStyle(
               duration: const Duration(milliseconds: 200),
               style: TextStyle(
-                color: isActive ? AppColors.primaryLight : AppColors.textMuted,
+                color: isActive ? const Color(0xFF064E3B) : const Color(0xFF2D6A50),
                 fontSize: 10,
                 fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
               ),

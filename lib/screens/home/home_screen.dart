@@ -1,16 +1,35 @@
+import 'dart:ui';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import '../../providers/farmer_provider.dart';
-import '../../providers/app_providers.dart';
-import '../../utils/app_colors.dart';
-import '../../utils/app_text_styles.dart';
-import '../../models/weather_data.dart';
-import '../../models/crop_monitor.dart';
-import '../../widgets/widgets.dart';
-import '../../localization/app_localizations.dart';
 
+import '../../providers/app_providers.dart';
+import '../../providers/farmer_provider.dart';
+import '../../utils/lovable_colors.dart';
+import '../../widgets/lovable_glass.dart';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Live mandi data (mirrors the Lovable blueprint)
+// ─────────────────────────────────────────────────────────────────────────────
+class _MandiRow {
+  final String crop, market, price, change;
+  final bool up;
+  const _MandiRow(this.crop, this.market, this.price, this.change, this.up);
+}
+
+const _mandiData = [
+  _MandiRow('Wheat', 'Karnal Mandi', '₹2,340', '+4.2%', true),
+  _MandiRow('Basmati Rice', 'Amritsar', '₹4,120', '+1.8%', true),
+  _MandiRow('Onion', 'Nashik', '₹1,760', '-2.4%', false),
+  _MandiRow('Tomato', 'Kolar', '₹1,180', '+6.9%', true),
+  _MandiRow('Cotton', 'Rajkot', '₹7,450', '-0.7%', false),
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// KisanMitra Home Screen — Lovable Blueprint Port
+// ─────────────────────────────────────────────────────────────────────────────
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -24,7 +43,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _loadData());
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadWeather());
   }
 
   @override
@@ -33,281 +52,426 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  Future<void> _loadData() async {
-    final weatherProvider = context.read<WeatherProvider>();
-    if (weatherProvider.currentCity.isEmpty) {
-      final profile = context.read<FarmerProvider>().profile;
-      await weatherProvider.fetchWeather(profile?.location ?? 'Lucknow');
-    } else {
-      await weatherProvider.fetchWeather(weatherProvider.currentCity);
-    }
+  Future<void> _loadWeather() async {
+    final wp = context.read<WeatherProvider>();
+    final profile = context.read<FarmerProvider>().profile;
+    await wp.fetchWeather(profile?.location ?? 'Nashik');
   }
 
   @override
   Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context);
-    final farmer = context.watch<FarmerProvider>().profile;
-    final firstName = farmer?.firstName ?? l.farmer;
-    final hour = DateTime.now().hour;
-    final greeting = hour < 12 ? l.goodMorning : hour < 17 ? l.goodAfternoon : l.goodEvening;
-
+    final isWide = MediaQuery.of(context).size.width > 768;
     return Scaffold(
-      backgroundColor: const Color(0xFF050810),
-      body: AmbientBackground(
-        scrollController: _scrollController,
-        child: Stack(
-          children: [
-            // Scrollable main content
-            RefreshIndicator(
-              color: AppColors.primary,
-              backgroundColor: AppColors.cardBg,
-              onRefresh: _loadData,
-              child: CustomScrollView(
-                controller: _scrollController,
-                physics: const BouncingScrollPhysics(),
-                slivers: [
-                  // Top padding for the floating nav bar
-                  SliverToBoxAdapter(
-                    child: SizedBox(height: MediaQuery.of(context).padding.top + 84),
+      backgroundColor: const Color(0xFFF0FDF4),
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          // ── Layer 1: Farm background photo ───────────────────────────────────
+          CachedNetworkImage(
+            imageUrl: LovableColors.bgImageUrl,
+            fit: BoxFit.cover,
+            placeholder: (_, __) => Container(color: const Color(0xFFD1FAE5)),
+            errorWidget: (_, __, ___) => Container(color: const Color(0xFFD1FAE5)),
+          ),
+
+          // ── Layer 2: Gradient overlay (matches Lovable CSS) ──────────────────
+          Container(
+            decoration: const BoxDecoration(gradient: LovableColors.bgOverlay),
+          ),
+
+          // ── Layer 3: Scrollable content ──────────────────────────────────────
+          RefreshIndicator(
+            color: LovableColors.emeraldAccent,
+            onRefresh: _loadWeather,
+            child: CustomScrollView(
+              controller: _scrollController,
+              physics: const BouncingScrollPhysics(),
+              slivers: [
+                // Space for the floating navbar
+                SliverToBoxAdapter(
+                  child: SizedBox(
+                    height: MediaQuery.of(context).padding.top + 88,
                   ),
+                ),
 
-                  // ─────── HERO SECTION ───────
-                  SliverPadding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    sliver: SliverToBoxAdapter(
-                      child: _buildHeroSection(l, greeting, firstName),
-                    ),
+                // ── Hero Section ─────────────────────────────────────────────
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  sliver: SliverToBoxAdapter(
+                    child: _buildHero(context),
                   ),
+                ),
 
-                  // ─────── WEATHER CARD ───────
-                  SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(20, 28, 20, 0),
-                    sliver: SliverToBoxAdapter(
-                      child: _buildWeatherCard(l)
-                          .animate()
-                          .fadeIn(delay: 400.ms, duration: 600.ms)
-                          .slideY(begin: 0.15, end: 0, delay: 400.ms, duration: 600.ms,
-                              curve: Curves.easeOutCubic),
-                    ),
+                const SliverToBoxAdapter(child: SizedBox(height: 56)),
+
+                // ── Bento Grid ───────────────────────────────────────────────
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 80),
+                  sliver: SliverToBoxAdapter(
+                    child: isWide
+                        ? _buildWideBentoGrid(context)
+                        : _buildNarrowBentoGrid(context),
                   ),
-
-                  // ─────── CROPS SECTION ───────
-                  SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(20, 28, 20, 0),
-                    sliver: SliverToBoxAdapter(
-                      child: _buildCropSection(l, farmer)
-                          .animate()
-                          .fadeIn(delay: 550.ms, duration: 600.ms)
-                          .slideY(begin: 0.15, end: 0, delay: 550.ms, duration: 600.ms,
-                              curve: Curves.easeOutCubic),
-                    ),
-                  ),
-
-                  // ─────── SECTION HEADER: Quick Actions ───────
-                  SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(20, 32, 20, 16),
-                    sliver: SliverToBoxAdapter(
-                      child: _buildSectionHeader(
-                        l.isHindi ? 'त्वरित कार्य' : 'Quick Actions',
-                        icon: Icons.grid_view_rounded,
-                      ).animate()
-                          .fadeIn(delay: 650.ms, duration: 500.ms),
-                    ),
-                  ),
-
-                  // ─────── 3D FLOATING ACTION GRID ───────
-                  SliverPadding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    sliver: SliverToBoxAdapter(
-                      child: _buildActionGrid(l),
-                    ),
-                  ),
-
-                  // ─────── BOTTOM PADDING ───────
-                  const SliverToBoxAdapter(child: SizedBox(height: 100)),
-                ],
-              ),
-            ),
-
-            // Floating pill navbar (always on top)
-            FloatingNavBar(
-              title: 'KisanMitra AI',
-              actions: [
-                _buildNotificationBell(context, l),
-                const SizedBox(width: 4),
-                _buildSettingsButton(),
+                ),
               ],
             ),
-          ],
+          ),
+
+          // ── Layer 4: Floating Pill Navbar ────────────────────────────────────
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 16,
+            left: 16,
+            right: 16,
+            child: _buildNavBar(context),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // NAV BAR — pill frosted glass, matches Lovable header exactly
+  // ───────────────────────────────────────────────────────────────────────────
+  Widget _buildNavBar(BuildContext context) {
+    final isWide = MediaQuery.of(context).size.width > 600;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(50),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 28, sigmaY: 28),
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 1152),
+          padding: EdgeInsets.symmetric(
+            horizontal: isWide ? 24 : 16,
+            vertical: 10,
+          ),
+          decoration: BoxDecoration(
+            color: LovableColors.glassStrong,
+            borderRadius: BorderRadius.circular(50),
+            border: Border.all(color: LovableColors.glassBorder, width: 1),
+            boxShadow: LovableColors.shadowGlass,
+          ),
+          child: Row(
+            children: [
+              // Brand
+              Row(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      gradient: LovableColors.ctaGradient,
+                      shape: BoxShape.circle,
+                      boxShadow: LovableColors.shadowGlow,
+                    ),
+                    child: const Icon(Icons.eco_rounded, color: Colors.white, size: 18),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    'KisanMitra',
+                    style: GoogleFonts.outfit(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: LovableColors.forest,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                ],
+              ),
+
+              const Spacer(),
+
+              // Nav links (desktop only)
+              if (isWide) ...[
+                _navLink('Dashboard', active: true),
+                _navLink('Market'),
+                _navLink('Scanner'),
+                const SizedBox(width: 8),
+              ],
+
+              // Avatar pill
+              _buildAvatarPill(context),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  // ────────────────────────────────────────────────────────────────────────────
-  // HERO SECTION — staggered spring reveal
-  // ────────────────────────────────────────────────────────────────────────────
-  Widget _buildHeroSection(AppLocalizations l, String greeting, String firstName) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Greeting line
-        Row(
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: AppColors.primaryDark.withValues(alpha: 0.3),
-                shape: BoxShape.circle,
-                border: Border.all(color: AppColors.primary, width: 1.5),
-                boxShadow: const [
-                  BoxShadow(
-                    color: AppColors.primaryGlow,
-                    blurRadius: 16,
-                    spreadRadius: 2,
-                  )
-                ],
-              ),
-              child: const Center(child: Text('👨‍🌾', style: TextStyle(fontSize: 22))),
-            ).animate().fadeIn(duration: 400.ms).scale(begin: const Offset(0.7, 0.7), end: const Offset(1, 1), duration: 500.ms, curve: Curves.easeOutBack),
+  Widget _navLink(String label, {bool active = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 2),
+      child: GestureDetector(
+        onTap: () {},
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: active ? LovableColors.glassStrong : Colors.transparent,
+            borderRadius: BorderRadius.circular(50),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontFamily: 'PlusJakartaSans',
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: active ? LovableColors.forest : LovableColors.slateGreen,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
-            const SizedBox(width: 12),
-
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildAvatarPill(BuildContext context) {
+    final farmer = context.watch<FarmerProvider>().profile;
+    final name = farmer?.firstName ?? 'Yusuf';
+    return GestureDetector(
+      onTap: () => Navigator.pushNamed(context, '/profile'),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(50),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+          child: Container(
+            padding: const EdgeInsets.only(right: 12),
+            decoration: BoxDecoration(
+              color: LovableColors.glass,
+              borderRadius: BorderRadius.circular(50),
+              border: Border.all(color: LovableColors.glassBorder),
+            ),
+            child: Row(
               children: [
+                ClipOval(
+                  child: CachedNetworkImage(
+                    imageUrl: LovableColors.avatarUrl,
+                    width: 32,
+                    height: 32,
+                    fit: BoxFit.cover,
+                    errorWidget: (_, __, ___) => Container(
+                      width: 32,
+                      height: 32,
+                      color: LovableColors.emeraldAccent,
+                      child: Center(
+                        child: Text(
+                          name[0].toUpperCase(),
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
                 Text(
-                  '$greeting,',
-                  style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
-                ).animate().fadeIn(delay: 100.ms, duration: 400.ms),
-                Text(
-                  firstName,
-                  style: AppTextStyles.headlineLarge,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ).animate().fadeIn(delay: 150.ms, duration: 500.ms),
+                  name,
+                  style: const TextStyle(
+                    fontFamily: 'PlusJakartaSans',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: LovableColors.forest,
+                  ),
+                ),
               ],
             ),
-          ],
+          ),
         ),
+      ),
+    );
+  }
 
-        const SizedBox(height: 28),
-
-        // Main hero headline — gradient text
-        ShaderMask(
-          shaderCallback: (bounds) => AppColors.primaryGradient.createShader(bounds),
-          child: Text(
-            l.isHindi
-                ? 'स्मार्ट कृषि सहायक के साथ\nपैदावार बढ़ाएं'
-                : 'Empowering Your\nHarvest with AI',
-            style: GoogleFonts.spaceGrotesk(
-              fontSize: 36,
-              fontWeight: FontWeight.w800,
-              color: Colors.white,
-              height: 1.15,
-              letterSpacing: -0.5,
-            ),
+  // ───────────────────────────────────────────────────────────────────────────
+  // HERO SECTION
+  // ───────────────────────────────────────────────────────────────────────────
+  Widget _buildHero(BuildContext context) {
+    return Column(
+      children: [
+        // "Kharif season insights are live" badge
+        GlassChip(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.auto_awesome, size: 14, color: LovableColors.emeraldAccent),
+              const SizedBox(width: 6),
+              Text(
+                'Kharif season insights are live',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: LovableColors.slateGreen,
+                ),
+              ),
+            ],
           ),
         )
             .animate()
-            .fadeIn(delay: 200.ms, duration: 800.ms)
-            .slideY(
-              begin: 0.35,
-              end: 0,
-              delay: 200.ms,
-              duration: 800.ms,
-              curve: const Cubic(0.175, 0.885, 0.32, 1.275),
+            .fadeIn(duration: 500.ms)
+            .slideY(begin: -0.2, end: 0, duration: 500.ms),
+
+        const SizedBox(height: 24),
+
+        // Main headline with gradient text on "harvest richer"
+        RichText(
+          textAlign: TextAlign.center,
+          text: TextSpan(
+            style: GoogleFonts.outfit(
+              fontSize: MediaQuery.of(context).size.width > 600 ? 60 : 38,
+              fontWeight: FontWeight.w800,
+              color: LovableColors.forest,
+              height: 1.08,
+              letterSpacing: -1.2,
             ),
+            children: [
+              const TextSpan(text: 'Grow smarter, '),
+              WidgetSpan(
+                child: ShaderMask(
+                  shaderCallback: (r) => LovableColors.textGradient.createShader(r),
+                  child: Text(
+                    'harvest richer',
+                    style: GoogleFonts.outfit(
+                      fontSize: MediaQuery.of(context).size.width > 600 ? 60 : 38,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      height: 1.08,
+                      letterSpacing: -1.2,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        )
+            .animate()
+            .fadeIn(delay: 150.ms, duration: 700.ms)
+            .slideY(begin: 0.3, end: 0, delay: 150.ms, duration: 700.ms, curve: Curves.easeOutCubic),
 
-        const SizedBox(height: 14),
+        const SizedBox(height: 20),
 
-        // Tagline
+        // Subtitle
         Text(
-          l.isHindi
-              ? 'मौसम सलाह, रोग पहचान और लाइव मंडी भाव एक ही स्थान पर प्राप्त करें।'
-              : 'Disease diagnosis, predictive weather & real-time mandi prices — all in one place.',
-          style: GoogleFonts.inter(
-            fontSize: 14,
-            height: 1.65,
-            color: AppColors.textSecondary.withValues(alpha: 0.9),
+          'Real-time field intelligence for your farm — weather warnings, mandi rates\nand instant AI diagnosis of crop disease from a single photo.',
+          textAlign: TextAlign.center,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 15,
+            height: 1.6,
+            color: LovableColors.slateGreen,
             fontWeight: FontWeight.w400,
           ),
         )
             .animate()
-            .fadeIn(delay: 350.ms, duration: 700.ms)
-            .slideY(begin: 0.2, end: 0, delay: 350.ms, duration: 700.ms, curve: Curves.easeOutCubic),
+            .fadeIn(delay: 300.ms, duration: 600.ms),
 
-        const SizedBox(height: 24),
+        const SizedBox(height: 32),
 
         // CTA buttons row
         Wrap(
+          alignment: WrapAlignment.center,
           spacing: 12,
           runSpacing: 12,
           children: [
-            GradientButton(
-              label: l.isHindi ? '🔍 रोग स्कैन करें' : '🔍 Scan Disease',
-              onPressed: () => Navigator.pushNamed(context, '/disease-scan'),
-              colors: const [Color(0xFF16A34A), Color(0xFF22C55E), Color(0xFF06B6D4)],
-            ).animate().fadeIn(delay: 480.ms, duration: 600.ms)
-                .slideX(begin: -0.1, end: 0, delay: 480.ms, duration: 600.ms, curve: Curves.easeOutCubic),
+            CtaButton(
+              label: 'Scan Crop Disease',
+              icon: Icons.document_scanner_rounded,
+              onTap: () => Navigator.pushNamed(context, '/disease-scan'),
+            )
+                .animate()
+                .fadeIn(delay: 420.ms, duration: 600.ms)
+                .slideX(begin: -0.15, end: 0, delay: 420.ms, duration: 600.ms, curve: Curves.easeOutCubic),
 
-            OutlinedButton.icon(
-              onPressed: () => Navigator.pushNamed(context, '/crop-recommend'),
-              icon: const Icon(Icons.auto_awesome, size: 16, color: AppColors.accent),
-              label: Text(
-                l.isHindi ? 'AI सलाह' : 'AI Advice',
-                style: const TextStyle(color: AppColors.accent, fontSize: 14, fontWeight: FontWeight.w700),
-              ),
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                side: BorderSide(color: AppColors.accent.withValues(alpha: 0.6), width: 1.2),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
-              ),
-            ).animate().fadeIn(delay: 540.ms, duration: 600.ms)
-                .slideX(begin: 0.1, end: 0, delay: 540.ms, duration: 600.ms, curve: Curves.easeOutCubic),
+            GlassOutlineButton(
+              label: 'View field report',
+              trailingIcon: Icons.arrow_outward_rounded,
+              onTap: () => Navigator.pushNamed(context, '/crop-monitor'),
+            )
+                .animate()
+                .fadeIn(delay: 490.ms, duration: 600.ms)
+                .slideX(begin: 0.15, end: 0, delay: 490.ms, duration: 600.ms, curve: Curves.easeOutCubic),
           ],
         ),
       ],
     );
   }
 
-  // ────────────────────────────────────────────────────────────────────────────
-  // WEATHER CARD — neon data chips + 3D glass card
-  // ────────────────────────────────────────────────────────────────────────────
-  Widget _buildWeatherCard(AppLocalizations l) {
+  // ───────────────────────────────────────────────────────────────────────────
+  // BENTO GRID — wide (desktop): 6-col grid
+  // ───────────────────────────────────────────────────────────────────────────
+  Widget _buildWideBentoGrid(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Left column: Weather (md:col-span-3) + AI (md:col-span-3)
+        Expanded(
+          child: Column(
+            children: [
+              _buildWeatherCard(context)
+                  .animate()
+                  .fadeIn(delay: 600.ms, duration: 600.ms)
+                  .slideY(begin: 0.2, end: 0, delay: 600.ms, duration: 600.ms, curve: Curves.easeOutCubic),
+              const SizedBox(height: 20),
+              _buildAICard(context)
+                  .animate()
+                  .fadeIn(delay: 750.ms, duration: 600.ms)
+                  .slideY(begin: 0.2, end: 0, delay: 750.ms, duration: 600.ms, curve: Curves.easeOutCubic),
+            ],
+          ),
+        ),
+        const SizedBox(width: 20),
+
+        // Right column: Mandi prices (md:col-span-3 md:row-span-2)
+        Expanded(
+          child: _buildMandiCard(context)
+              .animate()
+              .fadeIn(delay: 680.ms, duration: 600.ms)
+              .slideY(begin: 0.2, end: 0, delay: 680.ms, duration: 600.ms, curve: Curves.easeOutCubic),
+        ),
+      ],
+    );
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // BENTO GRID — narrow (mobile): stacked
+  // ───────────────────────────────────────────────────────────────────────────
+  Widget _buildNarrowBentoGrid(BuildContext context) {
+    return Column(
+      children: [
+        _buildWeatherCard(context).animate().fadeIn(delay: 600.ms, duration: 500.ms),
+        const SizedBox(height: 16),
+        _buildMandiCard(context).animate().fadeIn(delay: 700.ms, duration: 500.ms),
+        const SizedBox(height: 16),
+        _buildAICard(context).animate().fadeIn(delay: 800.ms, duration: 500.ms),
+      ],
+    );
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // WEATHER CARD
+  // ───────────────────────────────────────────────────────────────────────────
+  Widget _buildWeatherCard(BuildContext context) {
     return Consumer<WeatherProvider>(
-      builder: (context, provider, _) {
-        if (provider.isLoading) {
-          return GlassCard(
-            blur: 15,
-            elevation: 1.5,
+      builder: (ctx, wp, _) {
+        if (wp.isLoading) {
+          return const LovableGlassCard(
             child: SizedBox(
-              height: 120,
-              child: LoadingWidget(message: l.isHindi ? 'मौसम डेटा लोड हो रहा है...' : 'Fetching live weather...'),
+              height: 180,
+              child: Center(
+                child: CircularProgressIndicator(color: LovableColors.emeraldAccent),
+              ),
             ),
           );
         }
-        if (provider.error != null) {
-          return GlassCard(
-            blur: 15,
-            elevation: 1,
-            child: ErrorStateWidget(message: provider.error!, onRetry: _loadData),
-          );
-        }
-        final w = provider.weather;
-        if (w == null) return const SizedBox.shrink();
 
-        return GlassCard(
-          blur: 15,
-          elevation: 1.8,
-          borderColor: AppColors.secondary.withValues(alpha: 0.5),
+        final w = wp.weather;
+        final city = w?.location ?? 'Nashik, Maharashtra';
+        final temp = w != null ? '${w.temperature.toStringAsFixed(0)}°' : '29°';
+        final condition = w?.condition ?? 'Partly cloudy · Feels like 32°';
+        final humidity = w != null ? '${w.humidity.toInt()}%' : '68%';
+        final wind = w != null ? '${w.windSpeed.toStringAsFixed(0)} km/h' : '12 km/h';
+        final rainProb = w != null ? '${w.rainProbability.toInt()}%' : 'Moist';
+
+        return LovableGlassCard(
           onTap: () => Navigator.pushNamed(context, '/weather'),
-          padding: const EdgeInsets.all(22),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header row
+              // City + weather icon row
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -315,443 +479,99 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: AppColors.secondary.withValues(alpha: 0.18),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: AppColors.secondary.withValues(alpha: 0.4)),
-                              ),
-                              child: Row(
-                                children: [
-                                  const Icon(Icons.wb_sunny_outlined, color: AppColors.secondary, size: 13),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    l.currentWeather,
-                                    style: const TextStyle(
-                                      color: AppColors.secondaryLight,
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w700,
-                                      letterSpacing: 0.5,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            GestureDetector(
-                              onTap: () => context.read<WeatherProvider>().fetchWeatherWithGPS(),
-                              child: Row(
-                                children: [
-                                  const Icon(Icons.location_on, size: 13, color: AppColors.textMuted),
-                                  const SizedBox(width: 2),
-                                  Text(w.location, style: AppTextStyles.bodySmall),
-                                ],
-                              ),
-                            ),
-                          ],
+                        Text(
+                          city.toUpperCase(),
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1.5,
+                            color: LovableColors.slateGreen,
+                          ),
                         ),
-                        const SizedBox(height: 12),
-                        ShaderMask(
-                          shaderCallback: (r) => const LinearGradient(
-                            colors: [AppColors.textPrimary, AppColors.secondaryLight],
-                          ).createShader(r),
-                          child: Text(
-                            '${w.temperature.toStringAsFixed(0)}°C',
-                            style: GoogleFonts.spaceGrotesk(
-                              fontSize: 48,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white,
-                              height: 1,
-                            ),
+                        const SizedBox(height: 8),
+                        Text(
+                          temp,
+                          style: GoogleFonts.outfit(
+                            fontSize: 52,
+                            fontWeight: FontWeight.w700,
+                            color: LovableColors.forest,
+                            height: 1,
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          w.condition,
-                          style: AppTextStyles.titleMedium.copyWith(color: AppColors.textSecondary),
+                          condition,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: LovableColors.slateGreen,
+                          ),
                         ),
                       ],
                     ),
                   ),
-                  // Weather icon + agriculture alert
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(w.conditionIcon, style: const TextStyle(fontSize: 56)),
-                      const SizedBox(height: 6),
-                      GestureDetector(
-                        onTap: () => _showNotificationDialog(context, l, provider.weather?.agriculturalAlerts ?? []),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                          decoration: BoxDecoration(
-                            color: AppColors.accentSurface,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: AppColors.accent.withValues(alpha: 0.5)),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.notifications_active, color: AppColors.accent, size: 13),
-                              const SizedBox(width: 4),
-                              Text(
-                                l.isHindi ? 'अलर्ट' : 'Alerts',
-                                style: const TextStyle(color: AppColors.accentLight, fontSize: 11, fontWeight: FontWeight.w700),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 18),
-
-              // Neon data chips row — neon glowing values
-              Row(
-                children: [
-                  Expanded(
-                    child: NeonDataChip(
-                      emoji: '💧',
-                      label: l.humidity,
-                      value: '${w.humidity.toInt()}%',
-                      accentColor: AppColors.secondary,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: NeonDataChip(
-                      emoji: '🌬️',
-                      label: l.windSpeed,
-                      value: '${w.windSpeed.toStringAsFixed(0)} km/h',
-                      accentColor: AppColors.primaryLight,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: NeonDataChip(
-                      emoji: '🌧️',
-                      label: l.rainProbability,
-                      value: '${w.rainProbability.toInt()}%',
-                      accentColor: AppColors.accent,
-                    ),
-                  ),
-                ],
-              ),
-
-              // Tap hint
-              const SizedBox(height: 14),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
                   Text(
-                    l.isHindi ? 'पूरी रिपोर्ट देखें →' : 'Full forecast →',
-                    style: TextStyle(
-                      color: AppColors.secondary.withValues(alpha: 0.7),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    w?.conditionIcon ?? '⛅',
+                    style: const TextStyle(fontSize: 48),
                   ),
                 ],
               ),
-            ],
-          ),
-        );
-      },
-    );
-  }
 
-  // ────────────────────────────────────────────────────────────────────────────
-  // CROPS SECTION
-  // ────────────────────────────────────────────────────────────────────────────
-  Widget _buildCropSection(AppLocalizations l, dynamic farmer) {
-    return Consumer<CropMonitorProvider>(
-      builder: (context, provider, _) {
-        final crops = provider.crops;
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildSectionHeader(
-              l.currentCrop,
-              icon: Icons.eco_rounded,
-              actionLabel: crops.isEmpty ? (l.isHindi ? '+ जोड़ें' : '+ Add') : l.viewAll,
-              onAction: () => Navigator.pushNamed(context, '/crops'),
-            ),
-            const SizedBox(height: 14),
-            if (crops.isEmpty)
-              _buildNoCropState(l)
-            else
-              SizedBox(
-                height: 116,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: crops.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 12),
-                  itemBuilder: (context, i) =>
-                      SizedBox(width: 260, child: _buildCropCard(crops[i], l)),
-                ),
+              const SizedBox(height: 24),
+
+              // Weather chips grid
+              Row(
+                children: [
+                  Expanded(
+                    child: _weatherChip('💧', humidity, 'Humidity'),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _weatherChip('🌬️', wind, 'Wind'),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _weatherChip('🌱', rainProb, 'Soil'),
+                  ),
+                ],
               ),
-          ],
-        );
-      },
-    );
-  }
 
-  Widget _buildCropCard(CropMonitor crop, AppLocalizations l) {
-    return GlassCard(
-      padding: const EdgeInsets.all(14),
-      margin: EdgeInsets.zero,
-      elevation: 1.5,
-      borderColor: AppColors.primary.withValues(alpha: 0.4),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: AppColors.primaryDark.withValues(alpha: 0.25),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.primary.withValues(alpha: 0.4)),
-              boxShadow: const [
-                BoxShadow(color: AppColors.primaryGlow, blurRadius: 12, spreadRadius: 1),
-              ],
-            ),
-            child: const Text('🌾', style: TextStyle(fontSize: 26)),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  crop.cropName.split(' / ').first,
-                  style: AppTextStyles.titleSmall.copyWith(fontWeight: FontWeight.w800),
-                ),
-                Text(crop.growthStage.split(' / ').first, style: AppTextStyles.bodySmall),
-                const SizedBox(height: 8),
-                Stack(
+              const SizedBox(height: 16),
+
+              // Crop alert
+              GlassChip(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      height: 5,
-                      decoration: BoxDecoration(
-                        color: AppColors.border,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
-                    FractionallySizedBox(
-                      widthFactor: crop.progressPercent.clamp(0.0, 1.0),
-                      child: Container(
-                        height: 5,
-                        decoration: BoxDecoration(
-                          gradient: AppColors.primaryGradient,
-                          borderRadius: BorderRadius.circular(4),
-                          boxShadow: const [
-                            BoxShadow(color: AppColors.primaryGlow, blurRadius: 6),
+                    const Icon(Icons.warning_amber_rounded, size: 16, color: LovableColors.negative),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: RichText(
+                        text: TextSpan(
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: LovableColors.slateGreen,
+                          ),
+                          children: const [
+                            TextSpan(
+                              text: 'Crop alert: ',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                color: LovableColors.forest,
+                              ),
+                            ),
+                            TextSpan(
+                              text: 'High humidity may trigger leaf blight in tomato. Inspect lower foliage within 48 hours.',
+                            ),
                           ],
                         ),
                       ),
                     ),
                   ],
                 ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNoCropState(AppLocalizations l) {
-    return GlassCard(
-      elevation: 1.2,
-      borderColor: AppColors.primary.withValues(alpha: 0.3),
-      padding: const EdgeInsets.all(18),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: AppColors.primarySurface,
-              shape: BoxShape.circle,
-              border: Border.all(color: AppColors.primary.withValues(alpha: 0.4)),
-            ),
-            child: const Text('🌱', style: TextStyle(fontSize: 28)),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  l.isHindi ? 'कोई फसल नहीं जोड़ी गई है' : 'No crops added yet',
-                  style: AppTextStyles.titleSmall.copyWith(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  l.isHindi
-                      ? 'अपनी फसल ट्रैक करना शुरू करें।'
-                      : 'Start tracking your crops now.',
-                  style: AppTextStyles.bodySmall,
-                ),
-              ],
-            ),
-          ),
-          const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: AppColors.primary),
-        ],
-      ),
-    );
-  }
-
-  // ────────────────────────────────────────────────────────────────────────────
-  // 3D FLOATING ACTION GRID — Asymmetric 2x3 + featured tile layout
-  // ────────────────────────────────────────────────────────────────────────────
-  Widget _buildActionGrid(AppLocalizations l) {
-    final actions = [
-      _Action('🌱', l.recommendCrop, AppColors.primary, '/crop-recommend'),
-      _Action('🔍', l.scanPlant, AppColors.secondary, '/disease-scan'),
-      _Action('💧', l.irrigation, AppColors.accent, '/irrigation'),
-      _Action('📊', l.marketPrices, AppColors.secondaryLight, '/market'),
-      _Action('🤖', l.askAI, AppColors.primaryLight, '/assistant'),
-      _Action('⛅', l.weather, AppColors.info, '/weather'),
-    ];
-
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        mainAxisSpacing: 14,
-        crossAxisSpacing: 14,
-        childAspectRatio: 0.9,
-      ),
-      itemCount: actions.length,
-      itemBuilder: (context, i) => ActionTile3D(
-        emoji: actions[i].emoji,
-        label: actions[i].label,
-        accentColor: actions[i].color,
-        onTap: () => Navigator.pushNamed(context, actions[i].route),
-        animationDelay: i,
-      )
-          .animate()
-          .fadeIn(delay: Duration(milliseconds: 700 + i * 70), duration: 500.ms)
-          .slideY(
-            begin: 0.2,
-            end: 0,
-            delay: Duration(milliseconds: 700 + i * 70),
-            duration: 500.ms,
-            curve: Curves.easeOutCubic,
-          )
-          .scale(
-            begin: const Offset(0.88, 0.88),
-            end: const Offset(1, 1),
-            delay: Duration(milliseconds: 700 + i * 70),
-            duration: 500.ms,
-            curve: Curves.easeOutBack,
-          ),
-    );
-  }
-
-  // ────────────────────────────────────────────────────────────────────────────
-  // HELPERS
-  // ────────────────────────────────────────────────────────────────────────────
-  Widget _buildSectionHeader(
-    String title, {
-    IconData? icon,
-    String? actionLabel,
-    VoidCallback? onAction,
-  }) {
-    return Row(
-      children: [
-        if (icon != null) ...[
-          Icon(icon, color: AppColors.primary, size: 18),
-          const SizedBox(width: 8),
-        ],
-        Text(
-          title,
-          style: GoogleFonts.spaceGrotesk(
-            fontSize: 17,
-            fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
-            letterSpacing: -0.2,
-          ),
-        ),
-        const Spacer(),
-        if (actionLabel != null && onAction != null)
-          GestureDetector(
-            onTap: onAction,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-              decoration: BoxDecoration(
-                color: AppColors.primarySurface,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: AppColors.primary.withValues(alpha: 0.4)),
               ),
-              child: Text(
-                actionLabel,
-                style: const TextStyle(
-                  color: AppColors.primaryLight,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildSettingsButton() {
-    return GestureDetector(
-      onTap: () => Navigator.pushNamed(context, '/settings'),
-      child: Container(
-        width: 34,
-        height: 34,
-        decoration: BoxDecoration(
-          color: AppColors.backgroundSecondary.withValues(alpha: 0.6),
-          shape: BoxShape.circle,
-          border: Border.all(color: AppColors.border),
-        ),
-        child: const Icon(Icons.settings_outlined, color: AppColors.textSecondary, size: 17),
-      ),
-    );
-  }
-
-  Widget _buildNotificationBell(BuildContext context, AppLocalizations l) {
-    return Consumer<WeatherProvider>(
-      builder: (context, weatherProvider, _) {
-        final alerts = weatherProvider.weather?.agriculturalAlerts ?? [];
-        return GestureDetector(
-          onTap: () => _showNotificationDialog(context, l, alerts),
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              Container(
-                width: 34,
-                height: 34,
-                decoration: BoxDecoration(
-                  color: AppColors.backgroundSecondary.withValues(alpha: 0.6),
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.border),
-                ),
-                child: const Icon(Icons.notifications_outlined, color: AppColors.textSecondary, size: 17),
-              ),
-              if (alerts.isNotEmpty)
-                Positioned(
-                  top: 4,
-                  right: 4,
-                  child: Container(
-                    width: 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: AppColors.error,
-                      shape: BoxShape.circle,
-                      boxShadow: [BoxShadow(color: AppColors.error.withValues(alpha: 0.6), blurRadius: 6)],
-                    ),
-                  ),
-                ),
             ],
           ),
         );
@@ -759,99 +579,192 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _showNotificationDialog(BuildContext context, AppLocalizations l, List<AgriculturalAlert> alerts) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.cardBg,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
-          side: const BorderSide(color: AppColors.border),
-        ),
-        title: Row(
-          children: [
-            const Icon(Icons.notifications_active_outlined, color: AppColors.primary),
-            const SizedBox(width: 8),
-            Text(
-              l.isHindi ? 'कृषि सूचनाएं & अलर्ट' : 'Agricultural Alerts',
-              style: AppTextStyles.titleLarge,
+  Widget _weatherChip(String emoji, String value, String label) {
+    return GlassChip(
+      child: Column(
+        children: [
+          Text(emoji, style: const TextStyle(fontSize: 16)),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: GoogleFonts.outfit(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: LovableColors.forest,
             ),
-          ],
-        ),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: alerts.isEmpty
-              ? Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const SizedBox(height: 8),
-                    const Icon(Icons.notifications_off_outlined, size: 44, color: AppColors.primary),
-                    const SizedBox(height: 14),
-                    Text(
-                      l.isHindi ? 'अभी कोई नई सूचना नहीं है' : 'No new notifications',
-                      style: AppTextStyles.titleMedium,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      l.isHindi
-                          ? 'मौसम अलर्ट, बारिश और फसल सलाह यहां दिखेंगे।'
-                          : 'Weather alerts & crop advisories will appear here.',
-                      style: AppTextStyles.bodySmall,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 8),
-                  ],
-                )
-              : SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: alerts.map((a) => _buildAlertTile(a)).toList(),
-                  ),
-                ),
-        ),
-        actions: [
-          ElevatedButton(
-            onPressed: () => Navigator.pop(ctx),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              color: LovableColors.slateGreen,
             ),
-            child: Text(l.isHindi ? 'ठीक है' : 'OK'),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildAlertTile(AgriculturalAlert alert) {
-    final (color, icon) = switch (alert.severity) {
-      AlertSeverity.critical => (AppColors.error, Icons.warning_amber_rounded),
-      AlertSeverity.warning => (AppColors.warning, Icons.info_rounded),
-      _ => (AppColors.accent, Icons.check_circle_outline),
-    };
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
-      ),
-      child: Row(
+  // ───────────────────────────────────────────────────────────────────────────
+  // MANDI PRICES CARD
+  // ───────────────────────────────────────────────────────────────────────────
+  Widget _buildMandiCard(BuildContext context) {
+    return LovableGlassCard(
+      onTap: () => Navigator.pushNamed(context, '/market'),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: color, size: 22),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          // Header
+          Row(
+            children: [
+              Text(
+                'Live Mandi Prices',
+                style: GoogleFonts.outfit(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: LovableColors.forest,
+                ),
+              ),
+              const Spacer(),
+              GlassChip(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                child: Text(
+                  'per quintal',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: LovableColors.slateGreen,
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+
+          // Mandi rows
+          ..._mandiData.map(
+            (row) => Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: _MandiRowWidget(row: row),
+            ),
+          ),
+
+          const SizedBox(height: 4),
+
+          // Best sell today footer
+          GlassChip(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
               children: [
-                Text(alert.title, style: AppTextStyles.titleSmall.copyWith(color: color, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 3),
-                Text(alert.message, style: AppTextStyles.bodySmall),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'BEST SELL TODAY',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1.2,
+                          color: LovableColors.slateGreen,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Tomato · Kolar +6.9%',
+                        style: GoogleFonts.outfit(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: LovableColors.forest,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                CtaButton(
+                  label: 'Open market',
+                  trailingIcon: Icons.arrow_outward_rounded,
+                  onTap: () => Navigator.pushNamed(context, '/market'),
+                ),
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // AI CHAT CARD
+  // ───────────────────────────────────────────────────────────────────────────
+  Widget _buildAICard(BuildContext context) {
+    return LovableGlassCard(
+      onTap: () => Navigator.pushNamed(context, '/assistant'),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  gradient: LovableColors.ctaGradient,
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: LovableColors.shadowGlow,
+                ),
+                child: const Icon(Icons.smart_toy_rounded, color: Colors.white, size: 22),
+              ),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Ask KisanMitra AI',
+                    style: GoogleFonts.outfit(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: LovableColors.forest,
+                    ),
+                  ),
+                  Text(
+                    'Answers in Hindi, Marathi & English',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: LovableColors.slateGreen,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+
+          GlassChip(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Text(
+              '"Which fertilizer dose suits my 2-acre wheat field this week?"',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: LovableColors.slateGreen,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          CtaButton(
+            label: 'Start a conversation',
+            icon: Icons.arrow_outward_rounded,
+            width: double.infinity,
+            onTap: () => Navigator.pushNamed(context, '/assistant'),
           ),
         ],
       ),
@@ -859,8 +772,99 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-class _Action {
-  final String emoji, label, route;
-  final Color color;
-  const _Action(this.emoji, this.label, this.color, this.route);
+// ─────────────────────────────────────────────────────────────────────────────
+// Individual Mandi price row with hover effect
+// ─────────────────────────────────────────────────────────────────────────────
+class _MandiRowWidget extends StatefulWidget {
+  final _MandiRow row;
+  const _MandiRowWidget({required this.row});
+
+  @override
+  State<_MandiRowWidget> createState() => _MandiRowWidgetState();
+}
+
+class _MandiRowWidgetState extends State<_MandiRowWidget> {
+  bool _hovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() => _hovered = false),
+      child: AnimatedScale(
+        scale: _hovered ? 1.02 : 1.0,
+        duration: const Duration(milliseconds: 300),
+        curve: const Cubic(0.22, 1, 0.36, 1),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: _hovered ? LovableColors.glassStrong : LovableColors.glass,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: _hovered ? Colors.white : LovableColors.glassBorder,
+            ),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.row.crop,
+                      style: GoogleFonts.outfit(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: LovableColors.forest,
+                      ),
+                    ),
+                    Text(
+                      widget.row.market,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: LovableColors.slateGreen,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    widget.row.price,
+                    style: GoogleFonts.outfit(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: LovableColors.forest,
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      Icon(
+                        widget.row.up ? Icons.trending_up : Icons.trending_down,
+                        size: 12,
+                        color: widget.row.up ? LovableColors.positive : LovableColors.negative,
+                      ),
+                      const SizedBox(width: 2),
+                      Text(
+                        widget.row.change,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: widget.row.up ? LovableColors.positive : LovableColors.negative,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
