@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import '../../models/farmer_profile.dart';
 import '../../providers/farmer_provider.dart';
 import '../../utils/utils.dart';
-import '../../core/constants/app_constants.dart';
 import '../../widgets/common/app_widgets.dart';
 import '../../localization/app_localizations.dart';
 import '../../providers/auth_provider.dart' as app_auth;

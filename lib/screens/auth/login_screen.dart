@@ -7,7 +7,6 @@ import '../../localization/app_localizations.dart';
 import '../../providers/farmer_provider.dart';
 import '../../providers/app_providers.dart';
 import '../../models/farmer_profile.dart';
-import '../../core/constants/app_constants.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});

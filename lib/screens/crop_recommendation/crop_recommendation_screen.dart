@@ -4,7 +4,6 @@ import '../../models/crop_recommendation.dart';
 import '../../providers/farmer_provider.dart';
 import '../../services/demo/demo_crop_recommendation_service.dart';
 import '../../utils/utils.dart';
-import '../../core/constants/app_constants.dart';
 import '../../widgets/common/app_widgets.dart';
 import '../../localization/app_localizations.dart';
 

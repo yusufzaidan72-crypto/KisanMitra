@@ -4,11 +4,9 @@ import '../../providers/farmer_provider.dart';
 import '../../providers/app_providers.dart';
 import '../../models/farmer_profile.dart';
 import '../../utils/utils.dart';
-import '../../core/constants/app_constants.dart';
 import '../../widgets/common/app_widgets.dart';
 import '../../localization/app_localizations.dart';
 import '../../providers/auth_provider.dart' as app_auth;
-import '../../core/utils/url_helper.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});

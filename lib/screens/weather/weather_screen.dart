@@ -5,7 +5,6 @@ import '../../models/weather_data.dart';
 import '../../utils/utils.dart';
 import '../../widgets/widgets.dart';
 import '../../localization/app_localizations.dart';
-import '../../core/config/app_config.dart';
 import 'package:intl/intl.dart';
 
 class WeatherScreen extends StatefulWidget {

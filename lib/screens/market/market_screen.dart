@@ -3,10 +3,8 @@ import 'package:intl/intl.dart';
 import '../../models/market_price.dart';
 import '../../services/market_service_factory.dart';
 import '../../utils/utils.dart';
-import '../../core/constants/app_constants.dart';
 import '../../widgets/common/app_widgets.dart';
 import '../../localization/app_localizations.dart';
-import '../../core/utils/url_helper.dart';
 
 class MarketScreen extends StatefulWidget {
   const MarketScreen({super.key});

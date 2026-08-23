@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../utils/app_colors.dart';
@@ -321,7 +320,7 @@ class NeonDataChip extends StatelessWidget {
               ),
               Text(
                 label,
-                style: TextStyle(
+                style: const TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 10,
                   fontWeight: FontWeight.w500,

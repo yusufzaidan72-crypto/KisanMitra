@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -346,7 +345,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               onTap: () => context.read<WeatherProvider>().fetchWeatherWithGPS(),
                               child: Row(
                                 children: [
-                                  Icon(Icons.location_on, size: 13, color: AppColors.textMuted),
+                                  const Icon(Icons.location_on, size: 13, color: AppColors.textMuted),
                                   const SizedBox(width: 2),
                                   Text(w.location, style: AppTextStyles.bodySmall),
                                 ],

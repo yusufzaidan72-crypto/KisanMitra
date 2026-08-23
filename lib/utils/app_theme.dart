@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 import 'app_text_styles.dart';
 
@@ -124,8 +123,8 @@ class AppTheme {
           borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(color: AppColors.error),
         ),
-        labelStyle: TextStyle(color: AppColors.textSecondary),
-        hintStyle: TextStyle(color: AppColors.textHint),
+        labelStyle: const TextStyle(color: AppColors.textSecondary),
+        hintStyle: const TextStyle(color: AppColors.textHint),
       ),
 
       chipTheme: ChipThemeData(
@@ -146,7 +145,7 @@ class AppTheme {
 
       snackBarTheme: SnackBarThemeData(
         backgroundColor: AppColors.cardBg,
-        contentTextStyle: TextStyle(color: AppColors.textPrimary),
+        contentTextStyle: const TextStyle(color: AppColors.textPrimary),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
           side: const BorderSide(color: AppColors.primary),

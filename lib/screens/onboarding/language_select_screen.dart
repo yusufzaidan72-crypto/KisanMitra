@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../utils/utils.dart';
-import '../../core/constants/app_constants.dart';
 import '../../providers/app_providers.dart';
 import '../../widgets/widgets.dart';
 import 'package:provider/provider.dart';
