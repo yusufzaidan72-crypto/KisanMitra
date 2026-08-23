@@ -1,0 +1,74 @@
+name: kisan_mitra
+description: KisanMitra AI - AI-Powered Agricultural Assistant for Indian Farmers
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # Firebase
+  firebase_core: ^3.10.1
+  firebase_auth: ^5.5.1
+  cloud_firestore: ^5.6.5
+
+  # State Management
+  provider: ^6.1.2
+
+  # URL Launcher (Dialpad & Web Browser)
+  url_launcher: ^6.3.0
+
+
+  # Storage
+  shared_preferences: ^2.3.2
+  path_provider: 2.0.11
+
+  # Image
+  image_picker: ^1.1.2
+
+  # Charts (optional - available if needed)
+  fl_chart: ^0.68.0
+
+  # Environment
+  flutter_dotenv: ^5.2.1
+
+  # Internationalization
+  intl: ^0.20.2
+
+  # Icons
+  cupertino_icons: ^1.0.8
+
+  # Permissions
+  permission_handler: ^11.3.1
+
+  # Location
+  geolocator: ^13.0.1
+
+  # HTTP
+  http: ^1.2.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  flutter_launcher_icons: ^0.13.1
+
+flutter_launcher_icons:
+  android: "ic_launcher"
+  ios: true
+  image_path: "assets/images/app_logo.png"
+  min_sdk_android: 21
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - .env.example
+    - assets/images/
+
+
