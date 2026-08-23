@@ -7,6 +7,7 @@ class AppCard extends StatelessWidget {
   final EdgeInsetsGeometry? margin;
   final LinearGradient? gradient;
   final Color? color;
+  final Color? backgroundColor;
   final VoidCallback? onTap;
   final double borderRadius;
   final Border? border;
@@ -18,6 +19,7 @@ class AppCard extends StatelessWidget {
     this.margin,
     this.gradient,
     this.color,
+    this.backgroundColor,
     this.onTap,
     this.borderRadius = 16,
     this.border,
@@ -25,12 +27,14 @@ class AppCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final effectiveColor = color ?? backgroundColor ?? AppColors.cardBg;
+
     Widget card = AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       margin: margin,
       padding: padding,
       decoration: BoxDecoration(
-        color: gradient == null ? (color ?? AppColors.cardBg) : null,
+        color: gradient == null ? effectiveColor : null,
         gradient: gradient,
         borderRadius: BorderRadius.circular(borderRadius),
         border: border ?? Border.all(color: AppColors.border, width: 1),
