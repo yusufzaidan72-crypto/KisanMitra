@@ -3,15 +3,17 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
+import '../../localization/app_localizations.dart';
 import '../../providers/app_providers.dart';
 import '../../providers/farmer_provider.dart';
 import '../../utils/lovable_colors.dart';
 import '../../widgets/lovable_glass.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Live mandi data (mirrors the Lovable blueprint)
+// Live mandi data
 // ─────────────────────────────────────────────────────────────────────────────
 class _MandiRow {
   final String crop, market, price, change;
@@ -27,9 +29,6 @@ const _mandiData = [
   _MandiRow('Cotton', 'Rajkot', '₹7,450', '-0.7%', false),
 ];
 
-// ─────────────────────────────────────────────────────────────────────────────
-// KisanMitra Home Screen — Lovable Blueprint Port
-// ─────────────────────────────────────────────────────────────────────────────
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -60,13 +59,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final isWide = MediaQuery.of(context).size.width > 768;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF0FDF4),
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // ── Layer 1: Farm background photo ───────────────────────────────────
+          // Background photo
           CachedNetworkImage(
             imageUrl: LovableColors.bgImageUrl,
             fit: BoxFit.cover,
@@ -74,12 +75,12 @@ class _HomeScreenState extends State<HomeScreen> {
             errorWidget: (_, __, ___) => Container(color: const Color(0xFFD1FAE5)),
           ),
 
-          // ── Layer 2: Gradient overlay (matches Lovable CSS) ──────────────────
+          // Gradient overlay
           Container(
             decoration: const BoxDecoration(gradient: LovableColors.bgOverlay),
           ),
 
-          // ── Layer 3: Scrollable content ──────────────────────────────────────
+          // Scrollable content
           RefreshIndicator(
             color: LovableColors.emeraldAccent,
             onRefresh: _loadWeather,
@@ -87,37 +88,46 @@ class _HomeScreenState extends State<HomeScreen> {
               controller: _scrollController,
               physics: const BouncingScrollPhysics(),
               slivers: [
-                // Space for the floating navbar
                 SliverToBoxAdapter(
                   child: SizedBox(
                     height: MediaQuery.of(context).padding.top + 88,
                   ),
                 ),
 
-                // ── Hero Section ─────────────────────────────────────────────
+                // Hero Section
                 SliverPadding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   sliver: SliverToBoxAdapter(
-                    child: _buildHero(context),
+                    child: _buildHero(context, l),
                   ),
                 ),
 
-                const SliverToBoxAdapter(child: SizedBox(height: 56)),
+                const SliverToBoxAdapter(child: SizedBox(height: 36)),
 
-                // ── Bento Grid ───────────────────────────────────────────────
+                // ALL Quick Action Features Grid (Crop Add, Suggestion, Weather, Disease Scan, etc.)
                 SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 80),
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  sliver: SliverToBoxAdapter(
+                    child: _buildAllFeatureOptionsGrid(context, l),
+                  ),
+                ),
+
+                const SliverToBoxAdapter(child: SizedBox(height: 36)),
+
+                // Main Bento Grid (Weather & Mandi)
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 100),
                   sliver: SliverToBoxAdapter(
                     child: isWide
-                        ? _buildWideBentoGrid(context)
-                        : _buildNarrowBentoGrid(context),
+                        ? _buildWideBentoGrid(context, l)
+                        : _buildNarrowBentoGrid(context, l),
                   ),
                 ),
               ],
             ),
           ),
 
-          // ── Layer 4: Floating Pill Navbar ────────────────────────────────────
+          // Top Floating Pill Navbar (NO redundant right links, clean logo + avatar)
           Positioned(
             top: MediaQuery.of(context).padding.top + 16,
             left: 16,
@@ -130,20 +140,16 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // ───────────────────────────────────────────────────────────────────────────
-  // NAV BAR — pill frosted glass, matches Lovable header exactly
+  // NAV BAR — Clean top header (links removed, avatar pill active)
   // ───────────────────────────────────────────────────────────────────────────
   Widget _buildNavBar(BuildContext context) {
-    final isWide = MediaQuery.of(context).size.width > 600;
     return ClipRRect(
       borderRadius: BorderRadius.circular(50),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 28, sigmaY: 28),
         child: Container(
           constraints: const BoxConstraints(maxWidth: 1152),
-          padding: EdgeInsets.symmetric(
-            horizontal: isWide ? 24 : 16,
-            vertical: 10,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           decoration: BoxDecoration(
             color: LovableColors.glassStrong,
             borderRadius: BorderRadius.circular(50),
@@ -152,25 +158,25 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           child: Row(
             children: [
-              // Brand
+              // Brand Logo & Title
               Row(
                 children: [
                   Container(
-                    width: 36,
-                    height: 36,
+                    width: 38,
+                    height: 38,
                     decoration: BoxDecoration(
                       gradient: LovableColors.ctaGradient,
                       shape: BoxShape.circle,
                       boxShadow: LovableColors.shadowGlow,
                     ),
-                    child: const Icon(Icons.eco_rounded, color: Colors.white, size: 18),
+                    child: const Icon(LucideIcons.sprout, color: Colors.white, size: 20),
                   ),
                   const SizedBox(width: 10),
                   Text(
-                    'KisanMitra',
+                    'KisanMitra AI',
                     style: GoogleFonts.outfit(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
                       color: LovableColors.forest,
                       letterSpacing: -0.3,
                     ),
@@ -180,15 +186,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
               const Spacer(),
 
-              // Nav links (desktop only)
-              if (isWide) ...[
-                _navLink('Dashboard', active: true),
-                _navLink('Market'),
-                _navLink('Scanner'),
-                const SizedBox(width: 8),
-              ],
-
-              // Avatar pill
+              // Profile Avatar Pill (opens Profile & Settings)
               _buildAvatarPill(context),
             ],
           ),
@@ -197,34 +195,10 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _navLink(String label, {bool active = false}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 2),
-      child: GestureDetector(
-        onTap: () {},
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
-            color: active ? LovableColors.glassStrong : Colors.transparent,
-            borderRadius: BorderRadius.circular(50),
-          ),
-          child: Text(
-            label,
-            style: TextStyle(
-              fontFamily: 'PlusJakartaSans',
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: active ? LovableColors.forest : LovableColors.slateGreen,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildAvatarPill(BuildContext context) {
     final farmer = context.watch<FarmerProvider>().profile;
-    final name = farmer?.firstName ?? 'Yusuf';
+    final name = (farmer != null && farmer.name.isNotEmpty) ? farmer.name : 'Yusuf';
+
     return GestureDetector(
       onTap: () => Navigator.pushNamed(context, '/profile'),
       child: ClipRRect(
@@ -232,7 +206,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
           child: Container(
-            padding: const EdgeInsets.only(right: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
               color: LovableColors.glass,
               borderRadius: BorderRadius.circular(50),
@@ -240,35 +214,31 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             child: Row(
               children: [
-                ClipOval(
-                  child: CachedNetworkImage(
-                    imageUrl: LovableColors.avatarUrl,
-                    width: 32,
-                    height: 32,
-                    fit: BoxFit.cover,
-                    errorWidget: (_, __, ___) => Container(
-                      width: 32,
-                      height: 32,
-                      color: LovableColors.emeraldAccent,
-                      child: Center(
-                        child: Text(
-                          name[0].toUpperCase(),
-                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                        ),
-                      ),
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: const BoxDecoration(
+                    gradient: LovableColors.ctaGradient,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Text(
+                      name[0].toUpperCase(),
+                      style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
                     ),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Text(
                   name,
-                  style: const TextStyle(
-                    fontFamily: 'PlusJakartaSans',
+                  style: GoogleFonts.plusJakartaSans(
                     fontSize: 14,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w700,
                     color: LovableColors.forest,
                   ),
                 ),
+                const SizedBox(width: 4),
+                const Icon(LucideIcons.settings, size: 16, color: LovableColors.forest),
               ],
             ),
           ),
@@ -280,19 +250,18 @@ class _HomeScreenState extends State<HomeScreen> {
   // ───────────────────────────────────────────────────────────────────────────
   // HERO SECTION
   // ───────────────────────────────────────────────────────────────────────────
-  Widget _buildHero(BuildContext context) {
+  Widget _buildHero(BuildContext context, AppLocalizations l) {
     return Column(
       children: [
-        // "Kharif season insights are live" badge
         GlassChip(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.auto_awesome, size: 14, color: LovableColors.emeraldAccent),
+              const Icon(LucideIcons.sparkles, size: 14, color: LovableColors.emeraldAccent),
               const SizedBox(width: 6),
               Text(
-                'Kharif season insights are live',
+                l.isHindi ? 'कृषि सलाह और अंतर्दृष्टि लाइव हैं' : 'Agricultural insights & weather are live',
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
@@ -306,28 +275,27 @@ class _HomeScreenState extends State<HomeScreen> {
             .fadeIn(duration: 500.ms)
             .slideY(begin: -0.2, end: 0, duration: 500.ms),
 
-        const SizedBox(height: 24),
+        const SizedBox(height: 20),
 
-        // Main headline with gradient text on "harvest richer"
         RichText(
           textAlign: TextAlign.center,
           text: TextSpan(
             style: GoogleFonts.outfit(
-              fontSize: MediaQuery.of(context).size.width > 600 ? 60 : 38,
+              fontSize: MediaQuery.of(context).size.width > 600 ? 56 : 36,
               fontWeight: FontWeight.w800,
               color: LovableColors.forest,
               height: 1.08,
               letterSpacing: -1.2,
             ),
             children: [
-              const TextSpan(text: 'Grow smarter, '),
+              TextSpan(text: l.isHindi ? 'स्मार्ट खेती करें, ' : 'Grow smarter, '),
               WidgetSpan(
                 child: ShaderMask(
                   shaderCallback: (r) => LovableColors.textGradient.createShader(r),
                   child: Text(
-                    'harvest richer',
+                    l.isHindi ? 'बेहतर फसल पाएं' : 'harvest richer',
                     style: GoogleFonts.outfit(
-                      fontSize: MediaQuery.of(context).size.width > 600 ? 60 : 38,
+                      fontSize: MediaQuery.of(context).size.width > 600 ? 56 : 36,
                       fontWeight: FontWeight.w800,
                       color: Colors.white,
                       height: 1.08,
@@ -343,47 +311,38 @@ class _HomeScreenState extends State<HomeScreen> {
             .fadeIn(delay: 150.ms, duration: 700.ms)
             .slideY(begin: 0.3, end: 0, delay: 150.ms, duration: 700.ms, curve: Curves.easeOutCubic),
 
-        const SizedBox(height: 20),
+        const SizedBox(height: 16),
 
-        // Subtitle
         Text(
-          'Real-time field intelligence for your farm — weather warnings, mandi rates\nand instant AI diagnosis of crop disease from a single photo.',
+          l.isHindi
+              ? 'मौसम अलर्ट, लाइव मंडी भाव, फसल बीमारी पहचान और AI सलाह - सब एक ही स्थान पर।'
+              : 'Real-time field intelligence — weather warnings, mandi rates, and crop disease diagnosis from a photo.',
           textAlign: TextAlign.center,
           style: GoogleFonts.plusJakartaSans(
             fontSize: 15,
             height: 1.6,
             color: LovableColors.slateGreen,
-            fontWeight: FontWeight.w400,
+            fontWeight: FontWeight.w500,
           ),
-        )
-            .animate()
-            .fadeIn(delay: 300.ms, duration: 600.ms),
+        ).animate().fadeIn(delay: 300.ms, duration: 600.ms),
 
-        const SizedBox(height: 32),
+        const SizedBox(height: 28),
 
-        // CTA buttons row
         Wrap(
           alignment: WrapAlignment.center,
           spacing: 12,
           runSpacing: 12,
           children: [
             CtaButton(
-              label: 'Scan Crop Disease',
-              icon: Icons.document_scanner_rounded,
+              label: l.isHindi ? 'बीमारी स्कैन करें' : 'Scan Crop Disease',
+              icon: LucideIcons.scanLine,
               onTap: () => Navigator.pushNamed(context, '/disease-scan'),
-            )
-                .animate()
-                .fadeIn(delay: 420.ms, duration: 600.ms)
-                .slideX(begin: -0.15, end: 0, delay: 420.ms, duration: 600.ms, curve: Curves.easeOutCubic),
-
+            ),
             GlassOutlineButton(
-              label: 'View field report',
-              trailingIcon: Icons.arrow_outward_rounded,
+              label: l.isHindi ? 'फसल जोड़ें और देखें' : 'Crop Monitor',
+              trailingIcon: LucideIcons.arrowUpRight,
               onTap: () => Navigator.pushNamed(context, '/crop-monitor'),
-            )
-                .animate()
-                .fadeIn(delay: 490.ms, duration: 600.ms)
-                .slideX(begin: 0.15, end: 0, delay: 490.ms, duration: 600.ms, curve: Curves.easeOutCubic),
+            ),
           ],
         ),
       ],
@@ -391,59 +350,208 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // ───────────────────────────────────────────────────────────────────────────
-  // BENTO GRID — wide (desktop): 6-col grid
+  // ALL FEATURE OPTIONS GRID (Restored with Eco-Premium Glassmorphism Style)
   // ───────────────────────────────────────────────────────────────────────────
-  Widget _buildWideBentoGrid(BuildContext context) {
+  Widget _buildAllFeatureOptionsGrid(BuildContext context, AppLocalizations l) {
+    final features = [
+      (
+        title: l.isHindi ? 'फसल सुझाव' : 'Crop Suggestions',
+        subtitle: l.isHindi ? 'मिट्टी व मौसम अनुसार फसल चुनें' : 'Tailored recommendations by soil',
+        icon: LucideIcons.sparkles,
+        color: const Color(0xFF10B981),
+        route: '/crop-recommendation',
+      ),
+      (
+        title: l.isHindi ? 'फसल जोड़ें / मॉनिटर' : 'Add / Track Crop',
+        subtitle: l.isHindi ? 'अपनी फसल और कार्यों का हिसाब' : 'Track growth stage & field tasks',
+        icon: LucideIcons.sprout,
+        color: const Color(0xFF059669),
+        route: '/crop-monitor',
+      ),
+      (
+        title: l.isHindi ? 'रोग पहचान' : 'Disease Scanner',
+        subtitle: l.isHindi ? 'फोटो खींचकर बीमारी पहचानें' : 'Instant AI leaf disease diagnosis',
+        icon: LucideIcons.scanLine,
+        color: const Color(0xFF06B6D4),
+        route: '/disease-scan',
+      ),
+      (
+        title: l.isHindi ? 'सिंचाई सलाहकार' : 'Irrigation Advice',
+        subtitle: l.isHindi ? 'पानी की आवश्यकता और समय' : 'Smart water advice & timing',
+        icon: LucideIcons.droplets,
+        color: const Color(0xFF0284C7),
+        route: '/irrigation',
+      ),
+      (
+        title: l.isHindi ? 'मंडी भाव' : 'Live Mandi Prices',
+        subtitle: l.isHindi ? 'आज के ताजा बाजार भाव' : 'Real-time crop prices & MSP trends',
+        icon: LucideIcons.trendingUp,
+        color: const Color(0xFF059669),
+        route: '/market',
+      ),
+      (
+        title: l.isHindi ? 'मौसम पूर्वानुमान' : 'Weather Forecast',
+        subtitle: l.isHindi ? 'तापमान, वर्षा और कृषि अलर्ट' : 'Temperature, rain & alerts',
+        icon: LucideIcons.cloudSun,
+        color: const Color(0xFFD97706),
+        route: '/weather',
+      ),
+      (
+        title: l.isHindi ? 'AI किसान मित्र' : 'KisanMitra AI',
+        subtitle: l.isHindi ? '24x7 भाषा सहायता चैटबॉट' : '24/7 AI Chatbot assistant',
+        icon: LucideIcons.bot,
+        color: const Color(0xFF7C3AED),
+        route: '/assistant',
+      ),
+      (
+        title: l.isHindi ? 'प्रोफाइल और भाषा' : 'Profile & Settings',
+        subtitle: l.isHindi ? 'प्रोफाइल, भाषा व हेल्पलाइन' : 'Edit profile, language & support',
+        icon: LucideIcons.userCheck,
+        color: const Color(0xFF2563EB),
+        route: '/profile',
+      ),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 16),
+          child: Row(
+            children: [
+              Text(
+                l.isHindi ? 'मुख्य सेवाएं और विकल्प' : 'All Services & Quick Actions',
+                style: GoogleFonts.outfit(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                  color: LovableColors.forest,
+                ),
+              ),
+              const Spacer(),
+              GlassChip(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                child: Text(
+                  '8 Options',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: LovableColors.emeraldAccent,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final crossAxisCount = constraints.maxWidth > 900
+                ? 4
+                : (constraints.maxWidth > 550 ? 2 : 1);
+            return GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: features.length,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: crossAxisCount,
+                crossAxisSpacing: 14,
+                mainAxisSpacing: 14,
+                mainAxisExtent: 110,
+              ),
+              itemBuilder: (context, index) {
+                final feat = features[index];
+                return LovableGlassCard(
+                  padding: const EdgeInsets.all(16),
+                  onTap: () => Navigator.pushNamed(context, feat.route),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 46,
+                        height: 46,
+                        decoration: BoxDecoration(
+                          color: feat.color.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: feat.color.withValues(alpha: 0.3)),
+                        ),
+                        child: Icon(feat.icon, color: feat.color, size: 22),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              feat.title,
+                              style: GoogleFonts.outfit(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: LovableColors.forest,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              feat.subtitle,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                                color: LovableColors.slateGreen,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Icon(LucideIcons.chevronRight, size: 16, color: LovableColors.slateGreen),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // BENTO GRID — Weather & Mandi
+  // ───────────────────────────────────────────────────────────────────────────
+  Widget _buildWideBentoGrid(BuildContext context, AppLocalizations l) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Left column: Weather (md:col-span-3) + AI (md:col-span-3)
         Expanded(
           child: Column(
             children: [
-              _buildWeatherCard(context)
-                  .animate()
-                  .fadeIn(delay: 600.ms, duration: 600.ms)
-                  .slideY(begin: 0.2, end: 0, delay: 600.ms, duration: 600.ms, curve: Curves.easeOutCubic),
+              _buildWeatherCard(context),
               const SizedBox(height: 20),
-              _buildAICard(context)
-                  .animate()
-                  .fadeIn(delay: 750.ms, duration: 600.ms)
-                  .slideY(begin: 0.2, end: 0, delay: 750.ms, duration: 600.ms, curve: Curves.easeOutCubic),
+              _buildAICard(context),
             ],
           ),
         ),
         const SizedBox(width: 20),
-
-        // Right column: Mandi prices (md:col-span-3 md:row-span-2)
         Expanded(
-          child: _buildMandiCard(context)
-              .animate()
-              .fadeIn(delay: 680.ms, duration: 600.ms)
-              .slideY(begin: 0.2, end: 0, delay: 680.ms, duration: 600.ms, curve: Curves.easeOutCubic),
+          child: _buildMandiCard(context),
         ),
       ],
     );
   }
 
-  // ───────────────────────────────────────────────────────────────────────────
-  // BENTO GRID — narrow (mobile): stacked
-  // ───────────────────────────────────────────────────────────────────────────
-  Widget _buildNarrowBentoGrid(BuildContext context) {
+  Widget _buildNarrowBentoGrid(BuildContext context, AppLocalizations l) {
     return Column(
       children: [
-        _buildWeatherCard(context).animate().fadeIn(delay: 600.ms, duration: 500.ms),
+        _buildWeatherCard(context),
         const SizedBox(height: 16),
-        _buildMandiCard(context).animate().fadeIn(delay: 700.ms, duration: 500.ms),
+        _buildMandiCard(context),
         const SizedBox(height: 16),
-        _buildAICard(context).animate().fadeIn(delay: 800.ms, duration: 500.ms),
+        _buildAICard(context),
       ],
     );
   }
 
-  // ───────────────────────────────────────────────────────────────────────────
-  // WEATHER CARD
-  // ───────────────────────────────────────────────────────────────────────────
   Widget _buildWeatherCard(BuildContext context) {
     return Consumer<WeatherProvider>(
       builder: (ctx, wp, _) {
@@ -464,14 +572,12 @@ class _HomeScreenState extends State<HomeScreen> {
         final condition = w?.condition ?? 'Partly cloudy · Feels like 32°';
         final humidity = w != null ? '${w.humidity.toInt()}%' : '68%';
         final wind = w != null ? '${w.windSpeed.toStringAsFixed(0)} km/h' : '12 km/h';
-        final rainProb = w != null ? '${w.rainProbability.toInt()}%' : 'Moist';
 
         return LovableGlassCard(
           onTap: () => Navigator.pushNamed(context, '/weather'),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // City + weather icon row
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -503,7 +609,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           condition,
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 13,
-                            fontWeight: FontWeight.w500,
+                            fontWeight: FontWeight.w600,
                             color: LovableColors.slateGreen,
                           ),
                         ),
@@ -516,61 +622,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ],
               ),
-
-              const SizedBox(height: 24),
-
-              // Weather chips grid
+              const SizedBox(height: 20),
               Row(
                 children: [
-                  Expanded(
-                    child: _weatherChip('💧', humidity, 'Humidity'),
-                  ),
+                  Expanded(child: _weatherChip('💧', humidity, 'Humidity')),
                   const SizedBox(width: 10),
-                  Expanded(
-                    child: _weatherChip('🌬️', wind, 'Wind'),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _weatherChip('🌱', rainProb, 'Soil'),
-                  ),
+                  Expanded(child: _weatherChip('🌬️', wind, 'Wind')),
                 ],
-              ),
-
-              const SizedBox(height: 16),
-
-              // Crop alert
-              GlassChip(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Icon(Icons.warning_amber_rounded, size: 16, color: LovableColors.negative),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: RichText(
-                        text: TextSpan(
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                            color: LovableColors.slateGreen,
-                          ),
-                          children: const [
-                            TextSpan(
-                              text: 'Crop alert: ',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w700,
-                                color: LovableColors.forest,
-                              ),
-                            ),
-                            TextSpan(
-                              text: 'High humidity may trigger leaf blight in tomato. Inspect lower foliage within 48 hours.',
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
               ),
             ],
           ),
@@ -584,7 +642,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         children: [
           Text(emoji, style: const TextStyle(fontSize: 16)),
-          const SizedBox(height: 6),
+          const SizedBox(height: 4),
           Text(
             value,
             style: GoogleFonts.outfit(
@@ -593,7 +651,6 @@ class _HomeScreenState extends State<HomeScreen> {
               color: LovableColors.forest,
             ),
           ),
-          const SizedBox(height: 2),
           Text(
             label,
             style: GoogleFonts.plusJakartaSans(
@@ -607,16 +664,12 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // ───────────────────────────────────────────────────────────────────────────
-  // MANDI PRICES CARD
-  // ───────────────────────────────────────────────────────────────────────────
   Widget _buildMandiCard(BuildContext context) {
     return LovableGlassCard(
       onTap: () => Navigator.pushNamed(context, '/market'),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
           Row(
             children: [
               Text(
@@ -641,140 +694,64 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
-
           const SizedBox(height: 16),
-
-          // Mandi rows
           ..._mandiData.map(
             (row) => Padding(
               padding: const EdgeInsets.only(bottom: 10),
               child: _MandiRowWidget(row: row),
             ),
           ),
-
-          const SizedBox(height: 4),
-
-          // Best sell today footer
-          GlassChip(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'BEST SELL TODAY',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 1.2,
-                          color: LovableColors.slateGreen,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Tomato · Kolar +6.9%',
-                        style: GoogleFonts.outfit(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: LovableColors.forest,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                CtaButton(
-                  label: 'Open market',
-                  icon: Icons.arrow_outward_rounded,
-                  onTap: () => Navigator.pushNamed(context, '/market'),
-                ),
-              ],
-            ),
-          ),
         ],
       ),
     );
   }
 
-  // ───────────────────────────────────────────────────────────────────────────
-  // AI CHAT CARD
-  // ───────────────────────────────────────────────────────────────────────────
   Widget _buildAICard(BuildContext context) {
     return LovableGlassCard(
       onTap: () => Navigator.pushNamed(context, '/assistant'),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Row(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  gradient: LovableColors.ctaGradient,
-                  borderRadius: BorderRadius.circular(14),
-                  boxShadow: LovableColors.shadowGlow,
-                ),
-                child: const Icon(Icons.smart_toy_rounded, color: Colors.white, size: 22),
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Ask KisanMitra AI',
-                    style: GoogleFonts.outfit(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: LovableColors.forest,
-                    ),
-                  ),
-                  Text(
-                    'Answers in Hindi, Marathi & English',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: LovableColors.slateGreen,
-                    ),
-                  ),
-                ],
-              ),
-            ],
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              gradient: LovableColors.ctaGradient,
+              borderRadius: BorderRadius.circular(14),
+              boxShadow: LovableColors.shadowGlow,
+            ),
+            child: const Icon(LucideIcons.bot, color: Colors.white, size: 22),
           ),
-
-          const SizedBox(height: 16),
-
-          GlassChip(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Text(
-              '"Which fertilizer dose suits my 2-acre wheat field this week?"',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: LovableColors.slateGreen,
-                fontStyle: FontStyle.italic,
-              ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Ask KisanMitra AI',
+                  style: GoogleFonts.outfit(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: LovableColors.forest,
+                  ),
+                ),
+                Text(
+                  '24x7 voice & chat agricultural advice',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: LovableColors.slateGreen,
+                  ),
+                ),
+              ],
             ),
           ),
-
-          const SizedBox(height: 16),
-
-          CtaButton(
-            label: 'Start a conversation',
-            icon: Icons.arrow_outward_rounded,
-            width: double.infinity,
-            onTap: () => Navigator.pushNamed(context, '/assistant'),
-          ),
+          const Icon(LucideIcons.arrowUpRight, color: LovableColors.forest, size: 18),
         ],
       ),
     );
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Individual Mandi price row with hover effect
-// ─────────────────────────────────────────────────────────────────────────────
 class _MandiRowWidget extends StatefulWidget {
   final _MandiRow row;
   const _MandiRowWidget({required this.row});
@@ -791,78 +768,73 @@ class _MandiRowWidgetState extends State<_MandiRowWidget> {
     return MouseRegion(
       onEnter: (_) => setState(() => _hovered = true),
       onExit: (_) => setState(() => _hovered = false),
-      child: AnimatedScale(
-        scale: _hovered ? 1.02 : 1.0,
-        duration: const Duration(milliseconds: 300),
-        curve: const Cubic(0.22, 1, 0.36, 1),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            color: _hovered ? LovableColors.glassStrong : LovableColors.glass,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: _hovered ? Colors.white : LovableColors.glassBorder,
-            ),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: _hovered ? LovableColors.glassStrong : LovableColors.glass,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: _hovered ? Colors.white : LovableColors.glassBorder,
           ),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.row.crop,
-                      style: GoogleFonts.outfit(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: LovableColors.forest,
-                      ),
-                    ),
-                    Text(
-                      widget.row.market,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                        color: LovableColors.slateGreen,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    widget.row.price,
+                    widget.row.crop,
                     style: GoogleFonts.outfit(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
                       color: LovableColors.forest,
                     ),
                   ),
-                  Row(
-                    children: [
-                      Icon(
-                        widget.row.up ? Icons.trending_up : Icons.trending_down,
-                        size: 12,
-                        color: widget.row.up ? LovableColors.positive : LovableColors.negative,
-                      ),
-                      const SizedBox(width: 2),
-                      Text(
-                        widget.row.change,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: widget.row.up ? LovableColors.positive : LovableColors.negative,
-                        ),
-                      ),
-                    ],
+                  Text(
+                    widget.row.market,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      color: LovableColors.slateGreen,
+                    ),
                   ),
                 ],
               ),
-            ],
-          ),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  widget.row.price,
+                  style: GoogleFonts.outfit(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: LovableColors.forest,
+                  ),
+                ),
+                Row(
+                  children: [
+                    Icon(
+                      widget.row.up ? LucideIcons.trendingUp : LucideIcons.trendingDown,
+                      size: 12,
+                      color: widget.row.up ? LovableColors.positive : LovableColors.negative,
+                    ),
+                    const SizedBox(width: 2),
+                    Text(
+                      widget.row.change,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: widget.row.up ? LovableColors.positive : LovableColors.negative,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );

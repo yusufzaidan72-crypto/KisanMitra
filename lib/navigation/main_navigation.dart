@@ -56,8 +56,9 @@ class _MainNavigationState extends State<MainNavigation>
     final l = AppLocalizations.of(context);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF050810),
+      backgroundColor: const Color(0xFFF0FDF4),
       body: IndexedStack(
+
         index: _currentIndex,
         children: _screens,
       ),
