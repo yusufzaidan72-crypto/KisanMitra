@@ -35,10 +35,13 @@ Future<void> main() async {
     if (kIsWeb) {
       await Firebase.initializeApp(
         options: const FirebaseOptions(
-          apiKey: "PLACEHOLDER_API_KEY", // Replace with empty string if not available
-          appId: "PLACEHOLDER_APP_ID",
-          messagingSenderId: "PLACEHOLDER_SENDER_ID",
-          projectId: "PLACEHOLDER_PROJECT_ID",
+          apiKey: "AIzaSyBs4JrwXni-swp66Jm1sUWvNFnqN5LWxqc",
+          authDomain: "kisanmitra-a9983.firebaseapp.com",
+          projectId: "kisanmitra-a9983",
+          storageBucket: "kisanmitra-a9983.firebasestorage.app",
+          messagingSenderId: "571256793939",
+          appId: "1:571256793939:web:f0d2e2b82ce3a0808d4fa6",
+          measurementId: "G-2HJ44P2CBB",
         ),
       );
     } else {
