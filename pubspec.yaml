@@ -26,7 +26,7 @@ dependencies:
 
   # Storage
   shared_preferences: ^2.3.2
-  path_provider: ^2.1.5
+  path_provider: 2.1.2
 
   # Image
   image_picker: ^1.1.2
@@ -46,7 +46,8 @@ dependencies:
 
   # Icons
   cupertino_icons: ^1.0.8
-  lucide_icons: ^0.257.0
+  lucide_icons_flutter: ^3.1.17
+
 
 
   # Permissions
@@ -59,7 +60,13 @@ dependencies:
   http: ^1.2.2
 
   # Image caching
-  cached_network_image: ^3.4.1
+  cached_network_image: 3.3.1
+
+dependency_overrides:
+  path_provider_foundation: 2.3.2
+  path_provider: 2.0.11
+
+
 
 
 dev_dependencies:
