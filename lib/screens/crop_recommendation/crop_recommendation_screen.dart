@@ -11,7 +11,6 @@ import '../../providers/farmer_provider.dart';
 import '../../services/demo/demo_crop_recommendation_service.dart';
 import '../../utils/app_constants.dart';
 import '../../utils/lovable_colors.dart';
-import '../../widgets/lovable_glass.dart';
 import '../../widgets/widgets.dart';
 
 class CropRecommendationScreen extends StatefulWidget {

@@ -10,7 +10,6 @@ import '../../localization/app_localizations.dart';
 import '../../models/weather_data.dart';
 import '../../providers/app_providers.dart';
 import '../../utils/lovable_colors.dart';
-import '../../widgets/lovable_glass.dart';
 import '../../widgets/widgets.dart';
 
 class WeatherScreen extends StatefulWidget {

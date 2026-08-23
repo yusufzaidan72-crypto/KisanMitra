@@ -12,7 +12,6 @@ import '../../providers/farmer_provider.dart';
 import '../../services/demo/demo_irrigation_service.dart';
 import '../../utils/app_constants.dart';
 import '../../utils/lovable_colors.dart';
-import '../../widgets/lovable_glass.dart';
 import '../../widgets/widgets.dart';
 
 class IrrigationScreen extends StatefulWidget {
@@ -218,7 +217,7 @@ class _IrrigationScreenState extends State<IrrigationScreen> {
               Container(
                 width: 54,
                 height: 54,
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   gradient: LovableColors.ctaGradient,
                   shape: BoxShape.circle,
                 ),

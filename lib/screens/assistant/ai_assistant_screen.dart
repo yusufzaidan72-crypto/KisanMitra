@@ -131,7 +131,7 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
                 Container(
                   width: 32,
                   height: 32,
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     gradient: LovableColors.ctaGradient,
                     shape: BoxShape.circle,
                   ),
@@ -252,7 +252,7 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
             Container(
               width: 32,
               height: 32,
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 gradient: LovableColors.ctaGradient,
                 shape: BoxShape.circle,
               ),

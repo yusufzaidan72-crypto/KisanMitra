@@ -2,7 +2,6 @@ import 'dart:ui';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../localization/app_localizations.dart';
@@ -11,7 +10,6 @@ import '../../services/market_service_factory.dart';
 import '../../utils/app_constants.dart';
 import '../../utils/lovable_colors.dart';
 import '../../utils/url_helper.dart';
-import '../../widgets/lovable_glass.dart';
 import '../../widgets/widgets.dart';
 
 class MarketScreen extends StatefulWidget {

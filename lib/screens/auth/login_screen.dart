@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -12,7 +11,6 @@ import '../../providers/auth_provider.dart';
 import '../../providers/farmer_provider.dart';
 import '../../utils/app_constants.dart';
 import '../../utils/lovable_colors.dart';
-import '../../widgets/lovable_glass.dart';
 import '../../widgets/widgets.dart';
 
 class LoginScreen extends StatefulWidget {

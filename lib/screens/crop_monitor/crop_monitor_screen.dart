@@ -13,7 +13,6 @@ import '../../providers/auth_provider.dart';
 import '../../providers/farmer_provider.dart';
 import '../../utils/app_constants.dart';
 import '../../utils/lovable_colors.dart';
-import '../../widgets/lovable_glass.dart';
 import '../../widgets/widgets.dart';
 
 class CropMonitorScreen extends StatefulWidget {

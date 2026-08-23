@@ -12,7 +12,6 @@ import '../../providers/auth_provider.dart' as app_auth;
 import '../../providers/farmer_provider.dart';
 import '../../utils/app_constants.dart';
 import '../../utils/lovable_colors.dart';
-import '../../widgets/lovable_glass.dart';
 import '../../widgets/widgets.dart';
 
 class FarmerProfileScreen extends StatefulWidget {
