@@ -24,7 +24,6 @@ class _MarketScreenState extends State<MarketScreen> {
   String? _selectedState;
   String? _selectedMarket;
 
-  bool _isLoading = false;
   List<MarketPrice>? _prices;
   List<String> _markets = [];
 

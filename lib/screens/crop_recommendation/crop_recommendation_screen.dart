@@ -33,7 +33,6 @@ class _CropRecommendationScreenState extends State<CropRecommendationScreen> {
   String? _selectedSeason;
   String? _selectedWater;
 
-  bool _isLoading = false;
   List<CropRecommendation>? _results;
 
   final _service = DemoCropRecommendationService();

@@ -31,7 +31,6 @@ class _IrrigationScreenState extends State<IrrigationScreen> {
   String? _selectedSoil;
   String? _selectedForecast;
 
-  bool _isLoading = false;
   IrrigationAdvice? _advice;
   final _service = DemoIrrigationService();
 
