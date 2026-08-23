@@ -1,89 +1,84 @@
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
-import '../theme/app_text_styles.dart';
+import '../utils/utils.dart';
 
 class AppButton extends StatelessWidget {
-  final String label;
+  final String text;
   final VoidCallback? onPressed;
   final bool isLoading;
+  final IconData? icon;
+  final bool isFullWidth;
   final bool isOutlined;
   final Color? backgroundColor;
   final Color? textColor;
-  final IconData? icon;
-  final double? width;
-  final double height;
 
   const AppButton({
     super.key,
-    required this.label,
+    required this.text,
     this.onPressed,
     this.isLoading = false,
+    this.icon,
+    this.isFullWidth = true,
     this.isOutlined = false,
     this.backgroundColor,
     this.textColor,
-    this.icon,
-    this.width,
-    this.height = 50,
   });
 
   @override
   Widget build(BuildContext context) {
-    Widget content = isLoading
-        ? const SizedBox(
-            width: 22,
-            height: 22,
+    final effectiveBg = backgroundColor ?? (isOutlined ? Colors.transparent : AppColors.primary);
+    final effectiveFg = textColor ?? (isOutlined ? AppColors.primary : AppColors.textOnPrimary);
+
+    final childWidget = isLoading
+        ? SizedBox(
+            height: 20,
+            width: 20,
             child: CircularProgressIndicator(
-              strokeWidth: 2.5,
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              strokeWidth: 2,
+              valueColor: AlwaysStoppedAnimation<Color>(effectiveFg),
             ),
           )
         : Row(
             mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAlignment: MainAxisAlignment.center,
             children: [
               if (icon != null) ...[
-                Icon(icon, size: 20),
+                Icon(icon, size: 18, color: effectiveFg),
                 const SizedBox(width: 8),
               ],
               Text(
-                label,
-                style: AppTextStyles.button.copyWith(
-                  color: isOutlined ? (textColor ?? AppColors.primary) : (textColor ?? Colors.white),
-                ),
+                text,
+                style: AppTextStyles.button.copyWith(color: effectiveFg),
               ),
             ],
           );
 
-    if (isOutlined) {
+    final btnStyle = ElevatedButton.styleFrom(
+      backgroundColor: effectiveBg,
+      foregroundColor: effectiveFg,
+      elevation: isOutlined ? 0 : 4,
+      shadowColor: AppColors.primaryGlow,
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: isOutlined
+            ? BorderSide(color: backgroundColor ?? AppColors.primary, width: 1.5)
+            : BorderSide.none,
+      ),
+    );
+
+    final buttonWidget = ElevatedButton(
+      onPressed: isLoading ? null : onPressed,
+      style: btnStyle,
+      child: childWidget,
+    );
+
+    if (isFullWidth) {
       return SizedBox(
-        width: width,
-        height: height,
-        child: OutlinedButton(
-          onPressed: isLoading ? null : onPressed,
-          style: OutlinedButton.styleFrom(
-            foregroundColor: textColor ?? AppColors.primary,
-            side: BorderSide(color: textColor ?? AppColors.primary, width: 1.5),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-          ),
-          child: content,
-        ),
+        width: double.infinity,
+        child: buttonWidget,
       );
     }
 
-    return SizedBox(
-      width: width,
-      height: height,
-      child: ElevatedButton(
-        onPressed: isLoading ? null : onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: backgroundColor ?? AppColors.primary,
-          foregroundColor: textColor ?? Colors.white,
-          elevation: 2,
-          shadowColor: AppColors.primary.withValues(alpha: 0.3),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        ),
-        child: content,
-      ),
-    );
+    return buttonWidget;
   }
 }

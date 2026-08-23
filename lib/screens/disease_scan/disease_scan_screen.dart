@@ -4,8 +4,7 @@ import 'dart:typed_data';
 import '../../models/disease_result.dart';
 import '../../services/disease_service_factory.dart';
 import '../../services/interfaces/disease_service.dart';
-import '../../theme/app_colors.dart';
-import '../../theme/app_text_styles.dart';
+import '../../utils/utils.dart';
 import '../../widgets/common/app_widgets.dart';
 import '../../localization/app_localizations.dart';
 

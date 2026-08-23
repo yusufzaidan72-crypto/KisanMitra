@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/irrigation_advice.dart' show ChatMessage;
 import '../../services/demo/demo_ai_service.dart';
-import '../../theme/app_colors.dart';
-import '../../theme/app_text_styles.dart';
+import '../../utils/utils.dart';
 import '../../localization/app_localizations.dart';
 
 class AIAssistantScreen extends StatefulWidget {

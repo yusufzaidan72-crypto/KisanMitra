@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
+import '../utils/utils.dart';
 
 class DemoBadge extends StatelessWidget {
   const DemoBadge({super.key});

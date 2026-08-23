@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../theme/app_colors.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import '../../utils/utils.dart';
 import '../../core/constants/app_constants.dart';
 import '../../providers/app_providers.dart';
+import '../../widgets/widgets.dart';
 import 'package:provider/provider.dart';
 
 class LanguageSelectScreen extends StatefulWidget {
@@ -11,61 +13,30 @@ class LanguageSelectScreen extends StatefulWidget {
   State<LanguageSelectScreen> createState() => _LanguageSelectScreenState();
 }
 
-class _LanguageSelectScreenState extends State<LanguageSelectScreen>
-    with SingleTickerProviderStateMixin {
+class _LanguageSelectScreenState extends State<LanguageSelectScreen> {
   String _selectedCode = 'hi';
-  late AnimationController _animController;
-  late Animation<double> _fadeIn;
-  late Animation<Offset> _slideIn;
-
-  @override
-  void initState() {
-    super.initState();
-    _animController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 900),
-    );
-    _fadeIn = CurvedAnimation(parent: _animController, curve: Curves.easeOut);
-    _slideIn = Tween<Offset>(begin: const Offset(0, 0.15), end: Offset.zero)
-        .animate(CurvedAnimation(parent: _animController, curve: Curves.easeOutCubic));
-    _animController.forward();
-  }
-
-  @override
-  void dispose() {
-    _animController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       body: Container(
         width: double.infinity,
         height: double.infinity,
         decoration: const BoxDecoration(gradient: AppColors.heroGradient),
         child: SafeArea(
-          child: FadeTransition(
-            opacity: _fadeIn,
-            child: SlideTransition(
-              position: _slideIn,
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 12),
-                    // Logo Area
-                    _buildLogo(),
-                    const SizedBox(height: 24),
-                    // Language selector card
-                    _buildLanguageCard(),
-                    const SizedBox(height: 32),
-                    // Continue button
-                    _buildContinueButton(context),
-                    const SizedBox(height: 24),
-                  ],
-                ),
-              ),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+            child: Column(
+              children: [
+                const SizedBox(height: 12),
+                _buildLogo().animate().fadeIn(duration: 500.ms).slideY(begin: -0.1, end: 0),
+                const SizedBox(height: 28),
+                _buildLanguageCard().animate().fadeIn(duration: 600.ms, delay: 150.ms),
+                const SizedBox(height: 32),
+                _buildContinueButton(context).animate().fadeIn(duration: 600.ms, delay: 300.ms),
+                const SizedBox(height: 24),
+              ],
             ),
           ),
         ),
@@ -77,57 +48,50 @@ class _LanguageSelectScreenState extends State<LanguageSelectScreen>
     return Column(
       children: [
         Container(
-          width: 100,
-          height: 100,
+          width: 96,
+          height: 96,
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppColors.cardBg,
             shape: BoxShape.circle,
-            boxShadow: [
+            border: Border.all(color: AppColors.primary, width: 2),
+            boxShadow: const [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.2),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
+                color: AppColors.primaryGlow,
+                blurRadius: 24,
+                spreadRadius: 4,
               ),
             ],
           ),
           child: ClipOval(
             child: Image.asset(
               'assets/images/app_logo.png',
-              width: 100,
-              height: 100,
+              width: 96,
+              height: 96,
               fit: BoxFit.cover,
             ),
           ),
         ),
         const SizedBox(height: 20),
-        const Text(
+        Text(
           'किसान मित्र AI',
-          style: TextStyle(
-            fontSize: 32,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-            letterSpacing: 0.5,
-          ),
+          style: AppTextStyles.displayMedium.copyWith(color: AppColors.textPrimary),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         Text(
           'KisanMitra AI',
-          style: TextStyle(
-            fontSize: 16,
-            color: Colors.white.withValues(alpha: 0.8),
-            letterSpacing: 1.5,
-          ),
+          style: AppTextStyles.titleMedium.copyWith(color: AppColors.primaryLight, letterSpacing: 1.5),
         ),
         const SizedBox(height: 12),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.2),
+            color: AppColors.primaryDark.withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: AppColors.primary.withValues(alpha: 0.4)),
           ),
-          child: const Text(
+          child: Text(
             'AI-Powered Agricultural Assistant',
-            style: TextStyle(color: Colors.white, fontSize: 13),
+            style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
           ),
         ),
       ],
@@ -135,36 +99,22 @@ class _LanguageSelectScreenState extends State<LanguageSelectScreen>
   }
 
   Widget _buildLanguageCard() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.15),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.all(20),
+    return GlassCard(
+      padding: const EdgeInsets.all(22),
+      borderColor: AppColors.glassBorder,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Select Language / भाषा चुनें',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
-            ),
+            style: AppTextStyles.headlineSmall,
           ),
           const SizedBox(height: 4),
-          const Text(
+          Text(
             'Choose your preferred language',
-            style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+            style: AppTextStyles.bodyMedium,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           ...AppConstants.supportedLanguages.map((lang) => _buildLanguageTile(lang)),
         ],
       ),
@@ -177,39 +127,44 @@ class _LanguageSelectScreenState extends State<LanguageSelectScreen>
       onTap: () => setState(() => _selectedCode = lang['code']!),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        margin: const EdgeInsets.symmetric(vertical: 5),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        margin: const EdgeInsets.symmetric(vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.primarySurface
-              : AppColors.background,
-          borderRadius: BorderRadius.circular(12),
+              ? AppColors.primaryDark.withValues(alpha: 0.3)
+              : AppColors.backgroundSecondary.withValues(alpha: 0.6),
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: isSelected ? AppColors.primary : AppColors.border,
-            width: isSelected ? 2 : 1,
+            width: isSelected ? 1.5 : 1,
           ),
+          boxShadow: isSelected
+              ? [
+                  const BoxShadow(
+                    color: AppColors.primaryGlow,
+                    blurRadius: 10,
+                    spreadRadius: 0,
+                  )
+                ]
+              : null,
         ),
         child: Row(
           children: [
             Text(
               lang['name']!,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+              style: AppTextStyles.titleMedium.copyWith(
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                 color: AppColors.textPrimary,
               ),
             ),
             const SizedBox(width: 8),
             Text(
               '(${lang['englishName']})',
-              style: const TextStyle(
-                fontSize: 13,
-                color: AppColors.textSecondary,
-              ),
+              style: AppTextStyles.bodySmall,
             ),
             const Spacer(),
             if (isSelected)
-              const Icon(Icons.check_circle, color: AppColors.primary, size: 22),
+              const Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 22),
           ],
         ),
       ),
@@ -223,14 +178,15 @@ class _LanguageSelectScreenState extends State<LanguageSelectScreen>
       child: ElevatedButton(
         onPressed: _onContinue,
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.white,
-          foregroundColor: AppColors.primary,
+          backgroundColor: AppColors.primary,
+          foregroundColor: AppColors.textOnPrimary,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-          elevation: 0,
+          elevation: 4,
+          shadowColor: AppColors.primaryGlow,
         ),
-        child: const Text(
+        child: Text(
           'जारी रखें / Continue',
-          style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
+          style: AppTextStyles.button.copyWith(color: AppColors.textOnPrimary, fontSize: 16),
         ),
       ),
     );
