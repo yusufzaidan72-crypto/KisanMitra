@@ -31,6 +31,7 @@ class _IrrigationScreenState extends State<IrrigationScreen> {
   String? _selectedSoil;
   String? _selectedForecast;
 
+  bool _isLoading = false;
   IrrigationAdvice? _advice;
   final _service = DemoIrrigationService();
 
@@ -144,8 +145,10 @@ class _IrrigationScreenState extends State<IrrigationScreen> {
                                 label: l.getAdvice,
                                 icon: LucideIcons.droplet,
                                 width: double.infinity,
+                                isLoading: _isLoading,
                                 onTap: _getAdvice,
                               ),
+
                             ],
                           ),
                         ),

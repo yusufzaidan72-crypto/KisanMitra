@@ -33,6 +33,7 @@ class _CropRecommendationScreenState extends State<CropRecommendationScreen> {
   String? _selectedSeason;
   String? _selectedWater;
 
+  bool _isLoading = false;
   List<CropRecommendation>? _results;
 
   final _service = DemoCropRecommendationService();
@@ -135,8 +136,10 @@ class _CropRecommendationScreenState extends State<CropRecommendationScreen> {
                                   label: l.getCropRecommendations,
                                   icon: LucideIcons.sparkles,
                                   width: double.infinity,
+                                  isLoading: _isLoading,
                                   onTap: _getRecommendations,
                                 ),
+
                               ],
                             ),
                           ),

@@ -132,7 +132,7 @@ class CtaButton extends StatefulWidget {
   final String label;
   final IconData? icon;
   final VoidCallback? onTap;
-  final double? width;
+  final bool isLoading;
 
   const CtaButton({
     super.key,
@@ -140,7 +140,9 @@ class CtaButton extends StatefulWidget {
     this.icon,
     this.onTap,
     this.width,
+    this.isLoading = false,
   });
+
 
   @override
   State<CtaButton> createState() => _CtaButtonState();
@@ -183,26 +185,36 @@ class _CtaButtonState extends State<CtaButton> {
                     ]
                   : LovableColors.shadowGlow,
             ),
-            child: Row(
-              mainAxisSize: widget.width != null ? MainAxisSize.max : MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (widget.icon != null) ...[
-                  Icon(widget.icon, color: Colors.white, size: 18),
-                  const SizedBox(width: 8),
-                ],
-                Text(
-                  widget.label,
-                  style: const TextStyle(
-                    fontFamily: 'Outfit',
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.1,
+            child: widget.isLoading
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  )
+                : Row(
+                    mainAxisSize: widget.width != null ? MainAxisSize.max : MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (widget.icon != null) ...[
+                        Icon(widget.icon, color: Colors.white, size: 18),
+                        const SizedBox(width: 8),
+                      ],
+                      Text(
+                        widget.label,
+                        style: const TextStyle(
+                          fontFamily: 'Outfit',
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.1,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
-            ),
+
           ),
         ),
       ),

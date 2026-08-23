@@ -24,6 +24,7 @@ class _MarketScreenState extends State<MarketScreen> {
   String? _selectedState;
   String? _selectedMarket;
 
+  bool _isLoading = false;
   List<MarketPrice>? _prices;
   List<String> _markets = [];
 
@@ -212,8 +213,10 @@ class _MarketScreenState extends State<MarketScreen> {
             label: l.checkPrices,
             icon: LucideIcons.trendingUp,
             width: double.infinity,
+            isLoading: _isLoading,
             onTap: _getPrices,
           ),
+
         ],
       ),
     );
