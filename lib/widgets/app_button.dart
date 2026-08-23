@@ -2,26 +2,32 @@ import 'package:flutter/material.dart';
 import '../utils/utils.dart';
 
 class AppButton extends StatelessWidget {
-  final String text;
+  final String? text;
+  final String? label;
   final VoidCallback? onPressed;
   final bool isLoading;
   final IconData? icon;
   final bool isFullWidth;
+  final double? width;
   final bool isOutlined;
   final Color? backgroundColor;
   final Color? textColor;
 
   const AppButton({
     super.key,
-    required this.text,
+    this.text,
+    this.label,
     this.onPressed,
     this.isLoading = false,
     this.icon,
     this.isFullWidth = true,
+    this.width,
     this.isOutlined = false,
     this.backgroundColor,
     this.textColor,
   });
+
+  String get _buttonText => text ?? label ?? '';
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +52,7 @@ class AppButton extends StatelessWidget {
                 const SizedBox(width: 8),
               ],
               Text(
-                text,
+                _buttonText,
                 style: AppTextStyles.button.copyWith(color: effectiveFg),
               ),
             ],
@@ -71,6 +77,13 @@ class AppButton extends StatelessWidget {
       style: btnStyle,
       child: childWidget,
     );
+
+    if (width != null) {
+      return SizedBox(
+        width: width,
+        child: buttonWidget,
+      );
+    }
 
     if (isFullWidth) {
       return SizedBox(
