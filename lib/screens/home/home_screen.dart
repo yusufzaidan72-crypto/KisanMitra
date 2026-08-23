@@ -686,7 +686,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 CtaButton(
                   label: 'Open market',
-                  trailingIcon: Icons.arrow_outward_rounded,
+                  icon: Icons.arrow_outward_rounded,
                   onTap: () => Navigator.pushNamed(context, '/market'),
                 ),
               ],
