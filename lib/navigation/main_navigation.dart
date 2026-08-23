@@ -18,16 +18,29 @@ class MainNavigation extends StatefulWidget {
   State<MainNavigation> createState() => _MainNavigationState();
 }
 
-class _MainNavigationState extends State<MainNavigation> {
+class _MainNavigationState extends State<MainNavigation>
+    with SingleTickerProviderStateMixin {
   late int _currentIndex;
+  late AnimationController _scanGlowController;
 
   @override
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
+    _scanGlowController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat(reverse: true);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<WeatherProvider>().init();
     });
+  }
+
+  @override
+  void dispose() {
+    _scanGlowController.dispose();
+    super.dispose();
   }
 
   final List<Widget> _screens = const [
@@ -41,61 +54,62 @@ class _MainNavigationState extends State<MainNavigation> {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: const Color(0xFF050810),
       body: IndexedStack(
         index: _currentIndex,
         children: _screens,
       ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: AppColors.backgroundSecondary.withValues(alpha: 0.85),
-          border: const Border(top: BorderSide(color: AppColors.border, width: 1)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.4),
-              blurRadius: 20,
-              offset: const Offset(0, -4),
+      bottomNavigationBar: _buildFloatingBottomNav(l),
+    );
+  }
+
+  Widget _buildFloatingBottomNav(AppLocalizations l) {
+    return Container(
+      // Transparent outer container — the nav itself is the pill
+      color: Colors.transparent,
+      padding: EdgeInsets.fromLTRB(
+        20,
+        8,
+        20,
+        MediaQuery.of(context).padding.bottom + 12,
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(36),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            height: 64,
+            decoration: BoxDecoration(
+              color: AppColors.backgroundSecondary.withValues(alpha: 0.88),
+              borderRadius: BorderRadius.circular(36),
+              border: Border.all(
+                color: AppColors.primary.withValues(alpha: 0.20),
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.55),
+                  blurRadius: 30,
+                  offset: const Offset(0, 10),
+                ),
+                BoxShadow(
+                  color: AppColors.primary.withValues(alpha: 0.06),
+                  blurRadius: 20,
+                  offset: const Offset(0, -4),
+                ),
+              ],
             ),
-          ],
-        ),
-        child: ClipRRect(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-            child: BottomNavigationBar(
-              currentIndex: _currentIndex,
-              onTap: (i) => setState(() => _currentIndex = i),
-              type: BottomNavigationBarType.fixed,
-              backgroundColor: Colors.transparent,
-              selectedItemColor: AppColors.primary,
-              unselectedItemColor: AppColors.textMuted,
-              elevation: 0,
-              items: [
-                BottomNavigationBarItem(
-                  icon: const Icon(Icons.home_outlined),
-                  activeIcon: const Icon(Icons.home_rounded),
-                  label: l.home,
-                ),
-                BottomNavigationBarItem(
-                  icon: const Icon(Icons.spa_outlined),
-                  activeIcon: const Icon(Icons.spa_rounded),
-                  label: l.crops,
-                ),
-                BottomNavigationBarItem(
-                  icon: _buildScanIcon(active: _currentIndex == 2),
-                  activeIcon: _buildScanIcon(active: true),
-                  label: l.scan,
-                ),
-                BottomNavigationBarItem(
-                  icon: const Icon(Icons.storefront_outlined),
-                  activeIcon: const Icon(Icons.storefront_rounded),
-                  label: l.market,
-                ),
-                BottomNavigationBarItem(
-                  icon: const Icon(Icons.smart_toy_outlined),
-                  activeIcon: const Icon(Icons.smart_toy_rounded),
-                  label: l.assistant,
-                ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _navItem(Icons.home_outlined, Icons.home_rounded, l.home, 0),
+                _navItem(Icons.eco_outlined, Icons.eco_rounded, l.crops, 1),
+                _buildScanButton(l),
+                _navItem(Icons.storefront_outlined, Icons.storefront_rounded, l.market, 3),
+                _navItem(Icons.smart_toy_outlined, Icons.smart_toy_rounded, l.assistant, 4),
               ],
             ),
           ),
@@ -104,32 +118,90 @@ class _MainNavigationState extends State<MainNavigation> {
     );
   }
 
-  Widget _buildScanIcon({required bool active}) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        gradient: active ? AppColors.primaryGradient : null,
-        color: active ? null : AppColors.cardBg,
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: active ? AppColors.primaryLight : AppColors.border,
-          width: 1,
+  Widget _navItem(IconData inactive, IconData active, String label, int index) {
+    final isActive = _currentIndex == index;
+    return GestureDetector(
+      onTap: () => setState(() => _currentIndex = index),
+      behavior: HitTestBehavior.opaque,
+      child: SizedBox(
+        width: 56,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeOutCubic,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+              decoration: BoxDecoration(
+                color: isActive ? AppColors.primary.withValues(alpha: 0.18) : Colors.transparent,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(
+                isActive ? active : inactive,
+                color: isActive ? AppColors.primary : AppColors.textMuted,
+                size: 22,
+              ),
+            ),
+            const SizedBox(height: 2),
+            AnimatedDefaultTextStyle(
+              duration: const Duration(milliseconds: 200),
+              style: TextStyle(
+                color: isActive ? AppColors.primaryLight : AppColors.textMuted,
+                fontSize: 10,
+                fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+              ),
+              child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+            ),
+          ],
         ),
-        boxShadow: active
-            ? [
-                const BoxShadow(
-                  color: AppColors.primaryGlow,
-                  blurRadius: 12,
-                  spreadRadius: 2,
-                )
-              ]
-            : null,
       ),
-      child: Icon(
-        Icons.document_scanner_rounded,
-        color: active ? AppColors.textOnPrimary : AppColors.primary,
-        size: 20,
+    );
+  }
+
+  Widget _buildScanButton(AppLocalizations l) {
+    final isActive = _currentIndex == 2;
+    return GestureDetector(
+      onTap: () => setState(() => _currentIndex = 2),
+      child: AnimatedBuilder(
+        animation: _scanGlowController,
+        builder: (context, _) {
+          final glowIntensity = _scanGlowController.value;
+          return Container(
+            width: 54,
+            height: 54,
+            decoration: BoxDecoration(
+              gradient: isActive
+                  ? AppColors.primaryGradient
+                  : LinearGradient(
+                      colors: [
+                        AppColors.primaryDark.withValues(alpha: 0.6),
+                        AppColors.secondaryDark.withValues(alpha: 0.4),
+                      ],
+                    ),
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: isActive
+                    ? AppColors.primaryLight.withValues(alpha: 0.8)
+                    : AppColors.primary.withValues(alpha: 0.4),
+                width: 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withValues(
+                    alpha: isActive ? 0.55 + glowIntensity * 0.25 : 0.2 + glowIntensity * 0.15,
+                  ),
+                  blurRadius: isActive ? 22 + glowIntensity * 10 : 14 + glowIntensity * 6,
+                  spreadRadius: isActive ? 2 : 0,
+                ),
+              ],
+            ),
+            child: Icon(
+              Icons.document_scanner_rounded,
+              color: isActive ? AppColors.textOnPrimary : AppColors.primary,
+              size: 24,
+            ),
+          );
+        },
       ),
     );
   }
