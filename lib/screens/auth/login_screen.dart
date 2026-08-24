@@ -296,14 +296,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         GlassOutlineButton(
                           label: 'Direct Demo Access (बिना साइन-इन प्रवेश करें)',
                           trailingIcon: LucideIcons.arrowRight,
-                          onTap: () async {
-                            final authProvider = context.read<AuthProvider>();
-                            final success = await authProvider.signIn('demo@kisanmitra.ai', 'demo1234');
-                            if (mounted) {
-                              Navigator.pushReplacementNamed(context, '/main');
-                            }
-
+                          onTap: () {
+                            final nav = Navigator.of(context);
+                            context.read<AuthProvider>().signIn('demo@kisanmitra.ai', 'demo1234');
+                            nav.pushReplacementNamed('/main');
                           },
+
                         ),
                         const SizedBox(height: 12),
 
