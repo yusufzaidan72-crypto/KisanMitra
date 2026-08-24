@@ -1,5 +1,4 @@
 import 'dart:ui';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -7,11 +6,11 @@ import 'package:provider/provider.dart';
 
 import '../../localization/app_localizations.dart';
 import '../../models/irrigation_advice.dart';
-import '../../providers/app_providers.dart';
 import '../../providers/farmer_provider.dart';
 import '../../services/demo/demo_irrigation_service.dart';
 import '../../utils/app_constants.dart';
 import '../../utils/lovable_colors.dart';
+import '../../utils/agri_image_helper.dart';
 import '../../widgets/widgets.dart';
 
 class IrrigationScreen extends StatefulWidget {
@@ -35,41 +34,30 @@ class _IrrigationScreenState extends State<IrrigationScreen> {
   IrrigationAdvice? _advice;
   final _service = DemoIrrigationService();
 
+
   @override
   void initState() {
     super.initState();
     final profile = context.read<FarmerProvider>().profile;
     if (profile != null) {
-      _selectedCrop = AppConstants.commonCrops.firstWhere(
-        (c) => c.contains(profile.currentCrop.split(' / ').first),
-        orElse: () => AppConstants.commonCrops.first,
-      );
-      _selectedSoil = AppConstants.soilTypes.firstWhere(
-        (s) => s.contains(profile.soilType.split(' / ').first),
-        orElse: () => AppConstants.soilTypes.first,
-      );
-    }
-    final weather = context.read<WeatherProvider>().weather;
-    if (weather != null) {
-      _tempCtrl.text = weather.temperature.toStringAsFixed(0);
-      _humidityCtrl.text = weather.humidity.toStringAsFixed(0);
+      _selectedCrop = profile.currentCrop.isNotEmpty ? profile.currentCrop : null;
+      _selectedSoil = profile.soilType.isNotEmpty ? profile.soilType : null;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
+
     return Scaffold(
       backgroundColor: const Color(0xFFF0FDF4),
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // Background photo
-          CachedNetworkImage(
-            imageUrl: LovableColors.bgImageUrl,
+          // Background photo using AgriImage
+          const AgriImage(
+            keywordOrUrl: 'irrigation',
             fit: BoxFit.cover,
-            placeholder: (_, __) => Container(color: const Color(0xFFD1FAE5)),
-            errorWidget: (_, __, ___) => Container(color: const Color(0xFFD1FAE5)),
           ),
 
           // Gradient overlay

@@ -1,5 +1,4 @@
 import 'dart:ui';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -10,10 +9,12 @@ import '../../models/farmer_profile.dart';
 import '../../providers/app_providers.dart';
 import '../../providers/auth_provider.dart' as app_auth;
 import '../../providers/farmer_provider.dart';
+import '../../utils/agri_image_helper.dart';
 import '../../utils/app_constants.dart';
 import '../../utils/lovable_colors.dart';
 import '../../utils/url_helper.dart';
 import '../../widgets/widgets.dart';
+import '../auth/login_screen.dart';
 
 class FarmerProfileScreen extends StatefulWidget {
   final bool isEditing;
@@ -68,18 +69,19 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
+    final farmerProvider = context.watch<FarmerProvider>();
+    final profile = farmerProvider.profile;
+    final isLoggedIn = profile != null && profile.name.isNotEmpty;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF0FDF4),
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // Background photo
-          CachedNetworkImage(
-            imageUrl: LovableColors.bgImageUrl,
+          // Background photo using AgriImage
+          const AgriImage(
+            keywordOrUrl: 'farm',
             fit: BoxFit.cover,
-            placeholder: (_, __) => Container(color: const Color(0xFFD1FAE5)),
-            errorWidget: (_, __, ___) => Container(color: const Color(0xFFD1FAE5)),
           ),
 
           // Gradient overlay
@@ -100,125 +102,177 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Profile Summary Card
-                          _buildProfileSummaryCard(context, l),
+                          // 1. Profile Summary Card (or Guest Card if not logged in)
+                          _buildProfileSummaryCard(context, profile, isLoggedIn, l),
                           const SizedBox(height: 16),
 
-                          // Personal Information Form Card
-                          LovableGlassCard(
-                            strong: true,
-                            padding: const EdgeInsets.all(20),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  l.isHindi ? 'व्यक्तिगत जानकारी' : 'Personal Information',
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w700,
-                                    color: LovableColors.forest,
+                          // If NOT Logged In -> Show Login / Register CTA Card!
+                          if (!isLoggedIn) ...[
+                            LovableGlassCard(
+                              strong: true,
+                              padding: const EdgeInsets.all(20),
+                              child: Column(
+                                children: [
+                                  const Icon(LucideIcons.userPlus, size: 40, color: LovableColors.forest),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    l.isHindi
+                                        ? 'अपना किसान अकाउंट लॉग इन या रजिस्टर करें'
+                                        : 'Sign In / Register your Farmer Account',
+                                    textAlign: TextAlign.center,
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w700,
+                                      color: LovableColors.forest,
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(height: 14),
-                                AppTextField(
-                                  label: l.farmerName,
-                                  hint: 'e.g. Ramesh Kumar',
-                                  controller: _nameCtrl,
-                                  prefixIcon: const Icon(LucideIcons.user, size: 18),
-                                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Name is required' : null,
-                                ),
-                                const SizedBox(height: 14),
-                                AppTextField(
-                                  label: '${l.location} / Village',
-                                  hint: 'e.g. Sultanpur, Nashik',
-                                  controller: _locationCtrl,
-                                  prefixIcon: const Icon(LucideIcons.mapPin, size: 18),
-                                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Location is required' : null,
-                                ),
-                                const SizedBox(height: 14),
-                                AppDropdown<String>(
-                                  label: l.state,
-                                  value: _selectedState,
-                                  items: AppConstants.indianStates,
-                                  itemLabel: (s) => s,
-                                  prefixIcon: const Icon(LucideIcons.map, size: 18),
-                                  validator: (v) => v == null ? 'Please select state' : null,
-                                  onChanged: (v) => setState(() => _selectedState = v),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-
-                          // Farm Details Form Card
-                          LovableGlassCard(
-                            strong: true,
-                            padding: const EdgeInsets.all(20),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  l.isHindi ? 'खेत और फसल विवरण' : 'Farm & Crop Details',
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w700,
-                                    color: LovableColors.forest,
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    l.isHindi
+                                        ? 'अपनी फसल, khet aur bhasha ko save rakhne ke liye login karein.'
+                                        : 'Sign in to save your farm details, crops, and language preferences.',
+                                    textAlign: TextAlign.center,
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 13,
+                                      color: LovableColors.slateGreen,
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(height: 14),
-                                AppDropdown<String>(
-                                  label: l.soilType,
-                                  value: _selectedSoilType,
-                                  items: AppConstants.soilTypes,
-                                  itemLabel: (s) => s,
-                                  prefixIcon: const Icon(LucideIcons.layers, size: 18),
-                                  validator: (v) => v == null ? 'Please select soil type' : null,
-                                  onChanged: (v) => setState(() => _selectedSoilType = v),
-                                ),
-                                const SizedBox(height: 14),
-                                AppTextField(
-                                  label: '${l.farmSize} (Acres)',
-                                  hint: 'e.g. 2.5',
-                                  controller: _farmSizeCtrl,
-                                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                  prefixIcon: const Icon(LucideIcons.crop, size: 18),
-                                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Farm size required' : null,
-                                ),
-                                const SizedBox(height: 14),
-                                AppDropdown<String>(
-                                  label: l.currentCropLabel,
-                                  value: _selectedCrop,
-                                  items: AppConstants.commonCrops,
-                                  itemLabel: (s) => s,
-                                  prefixIcon: const Icon(LucideIcons.sprout, size: 18),
-                                  validator: (v) => v == null ? 'Please select crop' : null,
-                                  onChanged: (v) => setState(() => _selectedCrop = v),
-                                ),
-                              ],
+                                  const SizedBox(height: 18),
+                                  CtaButton(
+                                    label: l.isHindi ? 'लॉग इन / अकाउंट बनाएं' : 'SIGN IN / REGISTER',
+                                    icon: LucideIcons.logIn,
+                                    width: double.infinity,
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (_) => const LoginScreen()),
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 16),
+                            const SizedBox(height: 16),
+                          ],
 
-                          // Language Selection Settings Card
+                          // 2. Personal Information & Farm Form (Available when logged in)
+                          if (isLoggedIn) ...[
+                            LovableGlassCard(
+                              strong: true,
+                              padding: const EdgeInsets.all(20),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    l.isHindi ? 'व्यक्तिगत जानकारी' : 'Personal Information',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w700,
+                                      color: LovableColors.forest,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 14),
+                                  AppTextField(
+                                    label: l.farmerName,
+                                    hint: 'e.g. Ramesh Kumar',
+                                    controller: _nameCtrl,
+                                    prefixIcon: const Icon(LucideIcons.user, size: 18),
+                                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Name is required' : null,
+                                  ),
+                                  const SizedBox(height: 14),
+                                  AppTextField(
+                                    label: '${l.location} / Village',
+                                    hint: 'e.g. Sultanpur, Nashik',
+                                    controller: _locationCtrl,
+                                    prefixIcon: const Icon(LucideIcons.mapPin, size: 18),
+                                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Location is required' : null,
+                                  ),
+                                  const SizedBox(height: 14),
+                                  AppDropdown<String>(
+                                    label: l.state,
+                                    value: _selectedState,
+                                    items: AppConstants.indianStates,
+                                    itemLabel: (s) => s,
+                                    prefixIcon: const Icon(LucideIcons.map, size: 18),
+                                    validator: (v) => v == null ? 'Please select state' : null,
+                                    onChanged: (v) => setState(() => _selectedState = v),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+
+                            // Farm Details Form Card
+                            LovableGlassCard(
+                              strong: true,
+                              padding: const EdgeInsets.all(20),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    l.isHindi ? 'खेत और फसल विवरण' : 'Farm & Crop Details',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w700,
+                                      color: LovableColors.forest,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 14),
+                                  AppDropdown<String>(
+                                    label: l.soilType,
+                                    value: _selectedSoilType,
+                                    items: AppConstants.soilTypes,
+                                    itemLabel: (s) => s,
+                                    prefixIcon: const Icon(LucideIcons.layers, size: 18),
+                                    validator: (v) => v == null ? 'Please select soil type' : null,
+                                    onChanged: (v) => setState(() => _selectedSoilType = v),
+                                  ),
+                                  const SizedBox(height: 14),
+                                  AppTextField(
+                                    label: '${l.farmSize} (Acres)',
+                                    hint: 'e.g. 2.5',
+                                    controller: _farmSizeCtrl,
+                                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                    prefixIcon: const Icon(LucideIcons.crop, size: 18),
+                                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Farm size required' : null,
+                                  ),
+                                  const SizedBox(height: 14),
+                                  AppDropdown<String>(
+                                    label: l.currentCropLabel,
+                                    value: _selectedCrop,
+                                    items: AppConstants.commonCrops,
+                                    itemLabel: (s) => s,
+                                    prefixIcon: const Icon(LucideIcons.sprout, size: 18),
+                                    validator: (v) => v == null ? 'Please select crop' : null,
+                                    onChanged: (v) => setState(() => _selectedCrop = v),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                          ],
+
+                          // 3. Language Selection Card (WORKS WITHOUT LOGIN TOO!)
                           _buildLanguageSectionCard(context, l),
                           const SizedBox(height: 16),
 
-                          // Farmer Helplines & Support Card
+                          // 4. Farmer Helplines & Support Card (WORKS WITHOUT LOGIN TOO!)
                           _buildSupportSectionCard(l),
                           const SizedBox(height: 24),
 
-                          // Save Profile Button
-                          CtaButton(
-                            label: l.save,
-                            icon: LucideIcons.save,
-                            width: double.infinity,
-                            isLoading: _isSaving,
-                            onTap: _onSave,
-                          ),
-                          const SizedBox(height: 16),
+                          // Save & Logout Buttons (When Logged In)
+                          if (isLoggedIn) ...[
+                            CtaButton(
+                              label: l.save,
+                              icon: LucideIcons.save,
+                              width: double.infinity,
+                              isLoading: _isSaving,
+                              onTap: _onSave,
+                            ),
+                            const SizedBox(height: 16),
+                            _buildLogoutButton(context, l),
+                          ],
 
-                          // Logout Button
-                          _buildLogoutButton(context, l),
                           const SizedBox(height: 40),
                         ],
                       ),
@@ -254,8 +308,9 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
                   icon: const Icon(LucideIcons.arrowLeft, color: LovableColors.forest),
                   onPressed: () => Navigator.pop(context),
                 ),
+                const SizedBox(width: 8),
                 Text(
-                  l.isHindi ? 'प्रोफाइल व सेटिंग्स' : 'Profile & Settings',
+                  l.isHindi ? 'किसान प्रोफाइल व सेटिंग्स' : 'Profile & Settings',
                   style: GoogleFonts.outfit(
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
@@ -270,12 +325,16 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
     );
   }
 
-  Widget _buildProfileSummaryCard(BuildContext context, AppLocalizations l) {
-    final farmer = context.watch<FarmerProvider>().profile;
-    final name = (farmer != null && farmer.name.isNotEmpty) ? farmer.name : 'Yusuf';
-    final location = (farmer != null && farmer.location.isNotEmpty)
-        ? '${farmer.location}${farmer.state.isNotEmpty ? ", ${farmer.state}" : ""}'
-        : 'Nashik, Maharashtra';
+  Widget _buildProfileSummaryCard(
+    BuildContext context,
+    FarmerProfile? profile,
+    bool isLoggedIn,
+    AppLocalizations l,
+  ) {
+    final name = isLoggedIn ? profile!.name : (l.isHindi ? 'अतिथि किसान' : 'Guest Farmer');
+    final location = isLoggedIn
+        ? '${profile!.location}${profile.state.isNotEmpty ? ', ${profile.state}' : ''}'
+        : (l.isHindi ? 'साइन इन करें' : 'Sign in to complete profile');
 
     return LovableGlassCard(
       strong: true,
@@ -283,41 +342,53 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
       child: Row(
         children: [
           Container(
-            width: 56,
-            height: 56,
+            width: 60,
+            height: 60,
             decoration: BoxDecoration(
               gradient: LovableColors.ctaGradient,
               shape: BoxShape.circle,
               boxShadow: LovableColors.shadowGlow,
             ),
+
             child: Center(
               child: Text(
                 name[0].toUpperCase(),
-                style: GoogleFonts.outfit(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                style: GoogleFonts.outfit(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.white),
               ),
             ),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   name,
-                  style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.w700, color: LovableColors.forest),
+                  style: GoogleFonts.outfit(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: LovableColors.forest,
+                  ),
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '📍 $location',
-                  style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w600, color: LovableColors.slateGreen),
+                  location,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: LovableColors.slateGreen,
+                  ),
                 ),
               ],
             ),
           ),
           GlassChip(
             child: Text(
-              l.isHindi ? 'सक्रिय किसान' : 'Active Farmer',
-              style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w700, color: LovableColors.emeraldAccent),
+              isLoggedIn ? 'Active' : 'Guest',
+              style: GoogleFonts.outfit(
+                fontWeight: FontWeight.w700,
+                color: isLoggedIn ? LovableColors.emeraldAccent : LovableColors.slateGreen,
+              ),
             ),
           ),
         ],
@@ -326,7 +397,8 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
   }
 
   Widget _buildLanguageSectionCard(BuildContext context, AppLocalizations l) {
-    final currentLang = context.watch<LanguageProvider>().languageCode;
+    final langProvider = context.watch<LanguageProvider>();
+    final currentLang = langProvider.languageCode;
 
     return LovableGlassCard(
       strong: true,
@@ -336,83 +408,86 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
         children: [
           Row(
             children: [
-              const Icon(LucideIcons.languages, color: LovableColors.emeraldAccent, size: 20),
+              const Icon(LucideIcons.globe, color: LovableColors.emeraldAccent, size: 22),
               const SizedBox(width: 10),
               Text(
-                l.isHindi ? 'भाषा चयन (App Language)' : 'Language Settings',
-                style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w700, color: LovableColors.forest),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          ...AppConstants.supportedLanguages.map((lang) {
-            final isSelected = currentLang == lang['code'];
-            return ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: isSelected ? LovableColors.emeraldAccent.withValues(alpha: 0.15) : Colors.transparent,
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: Text(
-                    lang['name']!.substring(0, 1),
-                    style: GoogleFonts.outfit(
-                      color: isSelected ? LovableColors.forest : LovableColors.slateGreen,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-              ),
-              title: Text(
-                lang['name']!,
+                l.isHindi ? 'ऐप की भाषा चुनें / Choose Language' : 'App Language / भाषा बदलें',
                 style: GoogleFonts.outfit(
-                  fontSize: 15,
-                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
                   color: LovableColors.forest,
                 ),
               ),
-              subtitle: Text(
-                lang['englishName']!,
-                style: GoogleFonts.plusJakartaSans(fontSize: 12, color: LovableColors.slateGreen),
-              ),
-              trailing: isSelected ? const Icon(LucideIcons.checkCircle, color: LovableColors.emeraldAccent, size: 20) : null,
-              onTap: () {
-                setState(() => _selectedLanguage = lang['code']!);
-                context.read<LanguageProvider>().setLanguage(lang['code']!);
-              },
-            );
-          }),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            l.isHindi
+                ? 'बिना लॉगिन किए अपनी पसंदीदा भाषा चुनें'
+                : 'Switch app language instantly without sign-in',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 12,
+              color: LovableColors.slateGreen,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: AppConstants.supportedLanguages.map((lang) {
+              final code = lang['code']!;
+              final name = lang['name']!;
+              final isSelected = currentLang == code;
+              return GestureDetector(
+                onTap: () {
+                  langProvider.setLanguage(code);
+                  setState(() => _selectedLanguage = code);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Language changed to $name'),
+                      duration: const Duration(seconds: 1),
+                    ),
+                  );
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: isSelected ? LovableColors.forest : LovableColors.glass,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: isSelected ? LovableColors.emeraldAccent : LovableColors.glassBorder,
+                      width: isSelected ? 2 : 1,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        name,
+                        style: GoogleFonts.outfit(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: isSelected ? Colors.white : LovableColors.forest,
+                        ),
+                      ),
+                      if (isSelected) ...[
+                        const SizedBox(width: 6),
+                        const Icon(LucideIcons.check, size: 14, color: LovableColors.emeraldAccent),
+                      ],
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+
         ],
       ),
     );
   }
 
   Widget _buildSupportSectionCard(AppLocalizations l) {
-    final resources = [
-      (
-        title: 'Kisan Call Center',
-        subtitle: '1800-180-1551 (Toll-Free)',
-        icon: LucideIcons.phoneCall,
-        action: () => UrlHelper.launchPhoneDialer('1800-180-1551'),
-      ),
-      (
-        title: 'PM-KISAN Portal',
-        subtitle: 'pmkisan.gov.in',
-        icon: LucideIcons.globe,
-        action: () => UrlHelper.launchWebBrowser('https://pmkisan.gov.in'),
-      ),
-      (
-        title: 'eNAM Market Portal',
-        subtitle: 'enam.gov.in',
-        icon: LucideIcons.externalLink,
-        action: () => UrlHelper.launchWebBrowser('https://enam.gov.in'),
-      ),
-    ];
-
     return LovableGlassCard(
       strong: true,
       padding: const EdgeInsets.all(20),
@@ -421,23 +496,69 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
         children: [
           Row(
             children: [
-              const Icon(LucideIcons.headphones, color: LovableColors.emeraldAccent, size: 20),
+              const Icon(LucideIcons.phoneCall, color: LovableColors.emeraldAccent, size: 22),
               const SizedBox(width: 10),
               Text(
-                l.isHindi ? 'किसान सहायता व हेल्पलाइन' : 'Farmer Support & Helplines',
-                style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w700, color: LovableColors.forest),
+                l.isHindi ? 'किसान हेल्पलाइन और सहायता' : 'Farmer Support & Helplines',
+                style: GoogleFonts.outfit(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: LovableColors.forest,
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          ...resources.map((r) => ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: Icon(r.icon, color: LovableColors.forest, size: 20),
-                title: Text(r.title, style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.w600, color: LovableColors.forest)),
-                subtitle: Text(r.subtitle, style: GoogleFonts.plusJakartaSans(fontSize: 12, color: LovableColors.slateGreen)),
-                trailing: const Icon(LucideIcons.arrowUpRight, size: 16, color: LovableColors.forest),
-                onTap: r.action,
-              )),
+          const SizedBox(height: 16),
+          _supportRow('Kisan Call Center', '1800-180-1551', 'tel:18001801551'),
+          const SizedBox(height: 10),
+          _supportRow('PM-Kisan Helpline', '155261', 'tel:155261'),
+          const SizedBox(height: 10),
+          _supportRow('e-NAM Agriculture Portal', 'enam.gov.in', 'https://enam.gov.in'),
+        ],
+      ),
+    );
+  }
+
+  Widget _supportRow(String title, String subtitle, String url) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: LovableColors.glass,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: LovableColors.glassBorder),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w700, color: LovableColors.forest),
+                ),
+                Text(
+                  subtitle,
+                  style: GoogleFonts.plusJakartaSans(fontSize: 12, color: LovableColors.slateGreen),
+                ),
+              ],
+            ),
+          ),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: LovableColors.forest,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            icon: const Icon(LucideIcons.externalLink, size: 14),
+            label: const Text('Connect', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+            onPressed: () => url.startsWith('tel:')
+                ? UrlHelper.launchPhoneDialer(url)
+                : UrlHelper.launchWebBrowser(url),
+
+          ),
         ],
       ),
     );
@@ -445,12 +566,12 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
 
   Widget _buildLogoutButton(BuildContext context, AppLocalizations l) {
     return LovableGlassCard(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: ListTile(
         contentPadding: EdgeInsets.zero,
         leading: const Icon(LucideIcons.logOut, color: LovableColors.negative, size: 22),
         title: Text(
-          l.isHindi ? 'लॉगआउट करें' : 'Sign Out Account',
+          l.isHindi ? 'लॉगआउट / खाता बदलें' : 'Sign Out / Switch Account',
           style: GoogleFonts.outfit(color: LovableColors.negative, fontWeight: FontWeight.w700, fontSize: 16),
         ),
         onTap: () => _showLogoutDialog(context, l),
@@ -463,13 +584,21 @@ class _FarmerProfileScreenState extends State<FarmerProfileScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(l.isHindi ? 'लॉगआउट?' : 'Logout?'),
-        content: Text(l.isHindi ? 'क्या आप वाकई लॉगआउट करना चाहते हैं?' : 'Are you sure you want to sign out?'),
+        content: Text(
+          l.isHindi
+              ? 'क्या आप वाकई लॉगआउट करना चाहते हैं? आपकी सेव की गई प्रोफाइल रीसेट हो जाएगी।'
+              : 'Are you sure you want to sign out? Your saved profile will be reset.',
+        ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           TextButton(
             onPressed: () async {
               Navigator.pop(ctx);
-              await context.read<app_auth.AuthProvider>().signOut();
+              await context.read<FarmerProvider>().clearProfile();
+              await context.read<CropMonitorProvider>().clearCrops();
+              if (context.mounted) {
+                await context.read<app_auth.AuthProvider>().signOut();
+              }
               if (context.mounted) {
                 Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
               }

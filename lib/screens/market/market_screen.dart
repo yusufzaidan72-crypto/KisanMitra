@@ -1,5 +1,4 @@
 import 'dart:ui';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -9,6 +8,7 @@ import '../../models/market_price.dart';
 import '../../services/market_service_factory.dart';
 import '../../utils/app_constants.dart';
 import '../../utils/lovable_colors.dart';
+import '../../utils/agri_image_helper.dart';
 import '../../utils/url_helper.dart';
 import '../../widgets/widgets.dart';
 
@@ -53,12 +53,10 @@ class _MarketScreenState extends State<MarketScreen> {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // Background photo
-          CachedNetworkImage(
-            imageUrl: LovableColors.bgImageUrl,
+          // Background photo using AgriImage
+          const AgriImage(
+            keywordOrUrl: 'mandi',
             fit: BoxFit.cover,
-            placeholder: (_, __) => Container(color: const Color(0xFFD1FAE5)),
-            errorWidget: (_, __, ___) => Container(color: const Color(0xFFD1FAE5)),
           ),
 
           // Gradient overlay

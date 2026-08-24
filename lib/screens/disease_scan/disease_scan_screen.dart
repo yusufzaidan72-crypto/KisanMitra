@@ -1,5 +1,4 @@
 import 'dart:ui';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
@@ -11,6 +10,7 @@ import '../../models/disease_result.dart';
 import '../../services/disease_service_factory.dart';
 import '../../services/interfaces/disease_service.dart';
 import '../../utils/lovable_colors.dart';
+import '../../utils/agri_image_helper.dart';
 import '../../widgets/lovable_glass.dart';
 import '../../widgets/widgets.dart';
 
@@ -37,13 +37,12 @@ class _DiseaseScanScreenState extends State<DiseaseScanScreen> {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // Background photo
-          CachedNetworkImage(
-            imageUrl: LovableColors.bgImageUrl,
+          // Background photo using AgriImage
+          const AgriImage(
+            keywordOrUrl: 'disease',
             fit: BoxFit.cover,
-            placeholder: (_, __) => Container(color: const Color(0xFFD1FAE5)),
-            errorWidget: (_, __, ___) => Container(color: const Color(0xFFD1FAE5)),
           ),
+
 
           // Gradient overlay
           Container(
