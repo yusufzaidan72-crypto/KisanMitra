@@ -11,6 +11,13 @@ import '../../providers/app_providers.dart';
 import '../../providers/farmer_provider.dart';
 import '../../utils/lovable_colors.dart';
 import '../../widgets/lovable_glass.dart';
+import '../crop_monitor/crop_monitor_screen.dart';
+import '../crop_recommendation/crop_recommendation_screen.dart';
+import '../disease_scan/disease_scan_screen.dart';
+import '../irrigation/irrigation_screen.dart';
+import '../market/market_screen.dart';
+import '../profile/farmer_profile_screen.dart';
+import '../weather/weather_screen.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Live mandi data
@@ -104,7 +111,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 const SliverToBoxAdapter(child: SizedBox(height: 36)),
 
-                // ALL Quick Action Features Grid (Crop Add, Suggestion, Weather, Disease Scan, etc.)
+                // ALL Quick Action Feature Options Grid (Crop Suggestions, Add Crop, Disease Scan, etc.)
                 SliverPadding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   sliver: SliverToBoxAdapter(
@@ -114,7 +121,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 const SliverToBoxAdapter(child: SizedBox(height: 36)),
 
-                // Main Bento Grid (Weather & Mandi)
+                // Main Bento Grid (Weather & Mandi cards - AI Card removed)
                 SliverPadding(
                   padding: const EdgeInsets.fromLTRB(24, 0, 24, 100),
                   sliver: SliverToBoxAdapter(
@@ -127,7 +134,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          // Top Floating Pill Navbar (NO redundant right links, clean logo + avatar)
+          // Top Floating Pill Navbar (Top Right Profile avatar pill)
           Positioned(
             top: MediaQuery.of(context).padding.top + 16,
             left: 16,
@@ -140,7 +147,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // ───────────────────────────────────────────────────────────────────────────
-  // NAV BAR — Clean top header (links removed, avatar pill active)
+  // NAV BAR — Clean top header (avatar pill opens FarmerProfileScreen directly)
   // ───────────────────────────────────────────────────────────────────────────
   Widget _buildNavBar(BuildContext context) {
     return ClipRRect(
@@ -186,7 +193,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
               const Spacer(),
 
-              // Profile Avatar Pill (opens Profile & Settings)
+              // Profile Avatar Pill (opens Farmer Profile Screen on Tap)
               _buildAvatarPill(context),
             ],
           ),
@@ -200,17 +207,25 @@ class _HomeScreenState extends State<HomeScreen> {
     final name = (farmer != null && farmer.name.isNotEmpty) ? farmer.name : 'Yusuf';
 
     return GestureDetector(
-      onTap: () => Navigator.pushNamed(context, '/profile'),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const FarmerProfileScreen(isEditing: true),
+          ),
+        );
+      },
       child: ClipRRect(
         borderRadius: BorderRadius.circular(50),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             decoration: BoxDecoration(
-              color: LovableColors.glass,
+              color: LovableColors.glassStrong,
               borderRadius: BorderRadius.circular(50),
-              border: Border.all(color: LovableColors.glassBorder),
+              border: Border.all(color: LovableColors.glassBorder, width: 1.5),
+              boxShadow: LovableColors.shadowGlass,
             ),
             child: Row(
               children: [
@@ -237,8 +252,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     color: LovableColors.forest,
                   ),
                 ),
-                const SizedBox(width: 4),
-                const Icon(LucideIcons.settings, size: 16, color: LovableColors.forest),
+                const SizedBox(width: 6),
+                const Icon(LucideIcons.userCheck, size: 16, color: LovableColors.forest),
               ],
             ),
           ),
@@ -336,12 +351,22 @@ class _HomeScreenState extends State<HomeScreen> {
             CtaButton(
               label: l.isHindi ? 'बीमारी स्कैन करें' : 'Scan Crop Disease',
               icon: LucideIcons.scanLine,
-              onTap: () => Navigator.pushNamed(context, '/disease-scan'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const DiseaseScanScreen()),
+                );
+              },
             ),
             GlassOutlineButton(
-              label: l.isHindi ? 'फसल जोड़ें और देखें' : 'Crop Monitor',
-              trailingIcon: LucideIcons.arrowUpRight,
-              onTap: () => Navigator.pushNamed(context, '/crop-monitor'),
+              label: l.isHindi ? 'फसल सुझाव देखें' : 'Crop Suggestions',
+              trailingIcon: LucideIcons.sparkles,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const CropRecommendationScreen()),
+                );
+              },
             ),
           ],
         ),
@@ -350,7 +375,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // ───────────────────────────────────────────────────────────────────────────
-  // ALL FEATURE OPTIONS GRID (Restored with Eco-Premium Glassmorphism Style)
+  // ALL FEATURE OPTIONS GRID (Crop Suggestions, Add Crop, Scan, Weather, etc.)
   // ───────────────────────────────────────────────────────────────────────────
   Widget _buildAllFeatureOptionsGrid(BuildContext context, AppLocalizations l) {
     final features = [
@@ -359,56 +384,84 @@ class _HomeScreenState extends State<HomeScreen> {
         subtitle: l.isHindi ? 'मिट्टी व मौसम अनुसार फसल चुनें' : 'Tailored recommendations by soil',
         icon: LucideIcons.sparkles,
         color: const Color(0xFF10B981),
-        route: '/crop-recommendation',
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const CropRecommendationScreen()),
+          );
+        },
       ),
       (
         title: l.isHindi ? 'फसल जोड़ें / मॉनिटर' : 'Add / Track Crop',
         subtitle: l.isHindi ? 'अपनी फसल और कार्यों का हिसाब' : 'Track growth stage & field tasks',
         icon: LucideIcons.sprout,
         color: const Color(0xFF059669),
-        route: '/crop-monitor',
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const CropMonitorScreen()),
+          );
+        },
       ),
       (
         title: l.isHindi ? 'रोग पहचान' : 'Disease Scanner',
         subtitle: l.isHindi ? 'फोटो खींचकर बीमारी पहचानें' : 'Instant AI leaf disease diagnosis',
         icon: LucideIcons.scanLine,
         color: const Color(0xFF06B6D4),
-        route: '/disease-scan',
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const DiseaseScanScreen()),
+          );
+        },
       ),
       (
         title: l.isHindi ? 'सिंचाई सलाहकार' : 'Irrigation Advice',
         subtitle: l.isHindi ? 'पानी की आवश्यकता और समय' : 'Smart water advice & timing',
         icon: LucideIcons.droplets,
         color: const Color(0xFF0284C7),
-        route: '/irrigation',
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const IrrigationScreen()),
+          );
+        },
       ),
       (
         title: l.isHindi ? 'मंडी भाव' : 'Live Mandi Prices',
         subtitle: l.isHindi ? 'आज के ताजा बाजार भाव' : 'Real-time crop prices & MSP trends',
         icon: LucideIcons.trendingUp,
         color: const Color(0xFF059669),
-        route: '/market',
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const MarketScreen()),
+          );
+        },
       ),
       (
         title: l.isHindi ? 'मौसम पूर्वानुमान' : 'Weather Forecast',
         subtitle: l.isHindi ? 'तापमान, वर्षा और कृषि अलर्ट' : 'Temperature, rain & alerts',
         icon: LucideIcons.cloudSun,
         color: const Color(0xFFD97706),
-        route: '/weather',
-      ),
-      (
-        title: l.isHindi ? 'AI किसान मित्र' : 'KisanMitra AI',
-        subtitle: l.isHindi ? '24x7 भाषा सहायता चैटबॉट' : '24/7 AI Chatbot assistant',
-        icon: LucideIcons.bot,
-        color: const Color(0xFF7C3AED),
-        route: '/assistant',
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const WeatherScreen()),
+          );
+        },
       ),
       (
         title: l.isHindi ? 'प्रोफाइल और भाषा' : 'Profile & Settings',
         subtitle: l.isHindi ? 'प्रोफाइल, भाषा व हेल्पलाइन' : 'Edit profile, language & support',
         icon: LucideIcons.userCheck,
         color: const Color(0xFF2563EB),
-        route: '/profile',
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const FarmerProfileScreen(isEditing: true)),
+          );
+        },
       ),
     ];
 
@@ -431,7 +484,7 @@ class _HomeScreenState extends State<HomeScreen> {
               GlassChip(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 child: Text(
-                  '8 Options',
+                  '7 Options',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
@@ -445,7 +498,7 @@ class _HomeScreenState extends State<HomeScreen> {
         LayoutBuilder(
           builder: (context, constraints) {
             final crossAxisCount = constraints.maxWidth > 900
-                ? 4
+                ? 3
                 : (constraints.maxWidth > 550 ? 2 : 1);
             return GridView.builder(
               shrinkWrap: true,
@@ -461,7 +514,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 final feat = features[index];
                 return LovableGlassCard(
                   padding: const EdgeInsets.all(16),
-                  onTap: () => Navigator.pushNamed(context, feat.route),
+                  onTap: feat.onTap,
                   child: Row(
                     children: [
                       Container(
@@ -517,20 +570,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // ───────────────────────────────────────────────────────────────────────────
-  // BENTO GRID — Weather & Mandi
+  // BENTO GRID — Weather & Mandi (AI Card Removed)
   // ───────────────────────────────────────────────────────────────────────────
   Widget _buildWideBentoGrid(BuildContext context, AppLocalizations l) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
-          child: Column(
-            children: [
-              _buildWeatherCard(context),
-              const SizedBox(height: 20),
-              _buildAICard(context),
-            ],
-          ),
+          child: _buildWeatherCard(context),
         ),
         const SizedBox(width: 20),
         Expanded(
@@ -546,8 +593,6 @@ class _HomeScreenState extends State<HomeScreen> {
         _buildWeatherCard(context),
         const SizedBox(height: 16),
         _buildMandiCard(context),
-        const SizedBox(height: 16),
-        _buildAICard(context),
       ],
     );
   }
@@ -574,7 +619,12 @@ class _HomeScreenState extends State<HomeScreen> {
         final wind = w != null ? '${w.windSpeed.toStringAsFixed(0)} km/h' : '12 km/h';
 
         return LovableGlassCard(
-          onTap: () => Navigator.pushNamed(context, '/weather'),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const WeatherScreen()),
+            );
+          },
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -666,7 +716,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildMandiCard(BuildContext context) {
     return LovableGlassCard(
-      onTap: () => Navigator.pushNamed(context, '/market'),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const MarketScreen()),
+        );
+      },
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -701,51 +756,6 @@ class _HomeScreenState extends State<HomeScreen> {
               child: _MandiRowWidget(row: row),
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAICard(BuildContext context) {
-    return LovableGlassCard(
-      onTap: () => Navigator.pushNamed(context, '/assistant'),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              gradient: LovableColors.ctaGradient,
-              borderRadius: BorderRadius.circular(14),
-              boxShadow: LovableColors.shadowGlow,
-            ),
-            child: const Icon(LucideIcons.bot, color: Colors.white, size: 22),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Ask KisanMitra AI',
-                  style: GoogleFonts.outfit(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: LovableColors.forest,
-                  ),
-                ),
-                Text(
-                  '24x7 voice & chat agricultural advice',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: LovableColors.slateGreen,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const Icon(LucideIcons.arrowUpRight, color: LovableColors.forest, size: 18),
         ],
       ),
     );
