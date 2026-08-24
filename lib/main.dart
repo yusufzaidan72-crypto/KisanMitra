@@ -13,10 +13,7 @@ import 'providers/farmer_provider.dart';
 import 'providers/app_providers.dart';
 import 'providers/auth_provider.dart' as app_auth;
 
-
 import 'screens/onboarding/splash_screen.dart';
-
-// Screens
 import 'screens/auth/login_screen.dart';
 import 'screens/onboarding/language_select_screen.dart';
 import 'screens/profile/farmer_profile_screen.dart';
@@ -51,7 +48,6 @@ Future<void> main() async {
     debugPrint("Firebase initialization error: $e");
   }
 
-
   // Load environment variables safely
   try {
     await dotenv.load(fileName: "assets/.env");
@@ -62,7 +58,6 @@ Future<void> main() async {
       debugPrint("No .env file found. Proceeding with default values.");
     }
   }
-
 
   // Debug configuration
   AppConfig.debugPrintConfig();
@@ -124,6 +119,8 @@ class KisanMitraApp extends StatelessWidget {
     switch (settings.name) {
       case '/':
         return _buildRoute(const LanguageSelectScreen(), settings);
+      case '/profile':
+        return _buildRoute(const FarmerProfileScreen(isEditing: true), settings);
       case '/profile-setup':
         final args = settings.arguments as Map<String, dynamic>?;
         final isEditing = args?['isEditing'] as bool? ?? false;
@@ -133,19 +130,26 @@ class KisanMitraApp extends StatelessWidget {
         final initialIndex = args?['index'] as int? ?? 0;
         return _buildRoute(MainNavigation(initialIndex: initialIndex), settings);
       case '/crops':
+      case '/crop-monitor':
         return _buildRoute(const MainNavigation(initialIndex: 1), settings);
       case '/market':
         return _buildRoute(const MainNavigation(initialIndex: 3), settings);
+      case '/assistant':
+        return _buildRoute(const MainNavigation(initialIndex: 4), settings);
       case '/weather':
         return _buildRoute(const WeatherScreen(), settings);
       case '/crop-recommend':
+      case '/crop-recommendation':
         return _buildRoute(const CropRecommendationScreen(), settings);
       case '/disease-scan':
+      case '/scanner':
         return _buildRoute(const DiseaseScanScreen(), settings);
       case '/irrigation':
         return _buildRoute(const IrrigationScreen(), settings);
       case '/settings':
         return _buildRoute(const SettingsScreen(), settings);
+      case '/language-select':
+        return _buildRoute(const LanguageSelectScreen(), settings);
       default:
         return _buildRoute(const MainNavigation(), settings);
     }
@@ -188,8 +192,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
       _initialRoute = '/language-select';
     }
 
-    // Smooth splash screen display time (like Instagram / WhatsApp)
-    await Future.delayed(const Duration(milliseconds: 1500));
+    await Future.delayed(const Duration(milliseconds: 1200));
 
     if (mounted) {
       setState(() {
@@ -214,23 +217,19 @@ class _AuthWrapperState extends State<AuthWrapper> {
   Widget build(BuildContext context) {
     final authProvider = context.watch<app_auth.AuthProvider>();
 
-    // Display animated Splash Screen while initializing app state
     if (!_initialized) {
       return const SplashScreen();
     }
 
-    // Auth Guard
     if (!authProvider.isAuthenticated) {
       _lastLoadedUid = null;
       return const LoginScreen();
     }
 
-    // Trigger auto-fetch from Firebase for this UID
     if (authProvider.user?.uid != null) {
       _checkUserData(authProvider.user!.uid);
     }
 
-    // Navigation logic for authenticated users: if language set, go to /main
     switch (_initialRoute) {
       case '/main':
         return const MainNavigation();

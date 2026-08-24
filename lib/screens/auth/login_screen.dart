@@ -292,6 +292,21 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         const SizedBox(height: 20),
 
+                        // Quick 1-Tap Guest Access
+                        GlassOutlineButton(
+                          label: 'Direct Demo Access (बिना साइन-इन प्रवेश करें)',
+                          trailingIcon: LucideIcons.arrowRight,
+                          onTap: () async {
+                            final authProvider = context.read<AuthProvider>();
+                            final success = await authProvider.signIn('demo@kisanmitra.ai', 'demo1234');
+                            if (mounted) {
+                              Navigator.pushReplacementNamed(context, '/main');
+                            }
+
+                          },
+                        ),
+                        const SizedBox(height: 12),
+
                         // Toggle Register / Login
                         TextButton(
                           onPressed: () => setState(() => _isRegistering = !_isRegistering),
@@ -304,6 +319,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                         ),
+
                       ],
                     ),
                   ),
