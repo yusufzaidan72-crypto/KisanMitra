@@ -30,10 +30,10 @@ class AgriImageHelper {
     if (_agriPhotoMap.containsKey(key)) {
       return _agriPhotoMap[key]!;
     }
-    // Dynamic Unsplash keyword generator fallback
-    final cleanKeyword = Uri.encodeComponent(key.isEmpty ? 'farm' : '$key,agriculture,grass');
-    return 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=$width&h=$height&q=80&keywords=$cleanKeyword';
+    // Clean fallback to guaranteed valid Unsplash farm photo
+    return _agriPhotoMap['wheat']!;
   }
+
 }
 
 /// ─────────────────────────────────────────────────────────────────────────────

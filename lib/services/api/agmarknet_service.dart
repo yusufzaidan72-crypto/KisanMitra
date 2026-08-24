@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../../models/market_price.dart';
 import '../../core/config/app_config.dart';
@@ -7,12 +6,11 @@ import '../interfaces/market_price_service.dart';
 import '../demo/demo_market_price_service.dart';
 
 /// Real Mandi / Agmarknet Market Price Service
-/// Connects to data.gov.in Official Indian Agriculture Mandi API
+/// Connects to data.gov.in Official Indian Agriculture Mandi API with fast fallback
 class AgmarknetService implements MarketPriceService {
   static const String _baseUrl =
       'https://api.data.gov.in/resource/9ef0be3f-0834-4748-8578-1583f3141998';
   
-  // Official free Data.gov.in API key for Mandi prices
   static const String _defaultApiKey =
       '579b464db66ec23bdd000001cdd394632858472d46701c5fb80cd5d4';
 
@@ -31,7 +29,7 @@ class AgmarknetService implements MarketPriceService {
       final url = Uri.parse(
           '$_baseUrl?api-key=$apiKey&format=json&limit=50&filters[state]=$state');
 
-      final response = await http.get(url).timeout(const Duration(seconds: 8));
+      final response = await http.get(url).timeout(const Duration(seconds: 2));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -45,8 +43,8 @@ class AgmarknetService implements MarketPriceService {
           if (markets.isNotEmpty) return markets;
         }
       }
-    } catch (e) {
-      debugPrint('⚠️ Agmarknet markets fetch warning: $e');
+    } catch (_) {
+      // Quiet fallback to demo markets
     }
     return _demoFallback.getAvailableMarkets(state);
   }
@@ -63,16 +61,14 @@ class AgmarknetService implements MarketPriceService {
         : _defaultApiKey;
 
     try {
-      // Build filters
       var urlStr =
           '$_baseUrl?api-key=$apiKey&format=json&limit=20&filters[state]=$state&filters[commodity]=$cleanCrop';
       if (market != null && market.isNotEmpty) {
         urlStr += '&filters[market]=$market';
       }
 
-      debugPrint('🌐 Fetching Mandi Prices from Agmarknet: $urlStr');
       final response =
-          await http.get(Uri.parse(urlStr)).timeout(const Duration(seconds: 10));
+          await http.get(Uri.parse(urlStr)).timeout(const Duration(seconds: 2));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -99,8 +95,8 @@ class AgmarknetService implements MarketPriceService {
                   currentPrice: current,
                   minPrice: minP,
                   maxPrice: maxP,
-                  unit: 'per Quintal',
-                  marketName: item['market'] ?? 'APMC Market',
+                  unit: 'Quintal',
+                  marketName: item['market'] ?? 'Local Mandi',
                   state: item['state'] ?? state,
                   lastUpdated: DateTime.now(),
                   isDemo: false,
@@ -109,25 +105,12 @@ class AgmarknetService implements MarketPriceService {
               );
             }
           }
-
-          if (parsedPrices.isNotEmpty) {
-            debugPrint('✅ Loaded ${parsedPrices.length} live Mandi prices from Agmarknet API');
-            return parsedPrices;
-          }
+          if (parsedPrices.isNotEmpty) return parsedPrices;
         }
       }
-    } catch (e) {
-      debugPrint('⚠️ Agmarknet API error: $e, falling back to dynamic market data');
+    } catch (_) {
+      // Quiet fallback to dynamic market data
     }
-
-    // Fallback to dynamic prices if API has no records for exact query
-    final fallbackList = await _demoFallback.getPrices(
-      cropName: cropName,
-      state: state,
-      market: market,
-    );
-
-    // Mark as live dynamic prices
-    return fallbackList.map((p) => p.copyWith(isDemo: false)).toList();
+    return _demoFallback.getPrices(cropName: cropName, state: state, market: market);
   }
 }

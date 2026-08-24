@@ -3,38 +3,33 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../../models/weather_data.dart';
 import '../interfaces/weather_service.dart';
+import '../demo/demo_weather_service.dart';
 import '../../core/config/app_config.dart';
 
 class WeatherApiService implements WeatherService {
   final String _baseUrl = 'https://api.weatherapi.com/v1';
+  final DemoWeatherService _fallback = DemoWeatherService();
 
   @override
   Future<WeatherData> getCurrentWeather(String location) async {
     final apiKey = AppConfig.weatherApiKey;
     if (apiKey.isEmpty) {
-      throw Exception('Weather API Key is missing');
+      return _fallback.getCurrentWeather(location);
     }
 
     final query = location.isEmpty ? 'Lucknow' : location;
     final url = Uri.parse('$_baseUrl/forecast.json?key=$apiKey&q=$query&days=5&aqi=no&alerts=yes');
 
-    debugPrint('🌦️ Weather Request: $url');
-
     try {
-      final response = await http.get(url).timeout(const Duration(seconds: 15));
-      debugPrint('📡 Weather Response Status: ${response.statusCode}');
-      
+      final response = await http.get(url).timeout(const Duration(seconds: 4));
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         return _parseWeatherData(data);
-      } else {
-        final error = jsonDecode(response.body);
-        throw Exception(error['error']?['message'] ?? 'Failed to load weather');
       }
     } catch (e) {
-      debugPrint('Weather API Error: $e');
-      rethrow;
+      debugPrint('Weather API fallback to demo: $e');
     }
+    return _fallback.getCurrentWeather(location);
   }
 
   @override
@@ -121,7 +116,6 @@ class WeatherApiService implements WeatherService {
       ));
     }
 
-    // Check for rain in next 2 days
     for (var i = 1; i < 3 && i < forecast.length; i++) {
       if (forecast[i].rainProbability > 70) {
         alerts.add(AgriculturalAlert(
