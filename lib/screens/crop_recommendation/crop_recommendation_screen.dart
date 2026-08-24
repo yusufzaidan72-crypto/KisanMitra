@@ -11,7 +11,9 @@ import '../../providers/farmer_provider.dart';
 import '../../services/demo/demo_crop_recommendation_service.dart';
 import '../../utils/app_constants.dart';
 import '../../utils/lovable_colors.dart';
+import '../../utils/agri_image_helper.dart';
 import '../../widgets/widgets.dart';
+
 
 class CropRecommendationScreen extends StatefulWidget {
   const CropRecommendationScreen({super.key});
@@ -213,7 +215,12 @@ class _CropRecommendationScreenState extends State<CropRecommendationScreen> {
           children: [
             Row(
               children: [
-                Text(crop.icon, style: const TextStyle(fontSize: 32)),
+                AgriImage(
+                  keywordOrUrl: crop.cropName.toLowerCase(),
+                  width: 52,
+                  height: 52,
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -238,6 +245,7 @@ class _CropRecommendationScreenState extends State<CropRecommendationScreen> {
                 ),
               ],
             ),
+
             const Divider(height: 20, color: LovableColors.glassBorder),
             Text(
               crop.reason,

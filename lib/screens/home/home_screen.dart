@@ -10,7 +10,9 @@ import '../../localization/app_localizations.dart';
 import '../../providers/app_providers.dart';
 import '../../providers/farmer_provider.dart';
 import '../../utils/lovable_colors.dart';
+import '../../utils/agri_image_helper.dart';
 import '../../widgets/lovable_glass.dart';
+
 import '../crop_monitor/crop_monitor_screen.dart';
 import '../crop_recommendation/crop_recommendation_screen.dart';
 import '../disease_scan/disease_scan_screen.dart';
@@ -74,13 +76,12 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // Background photo
-          CachedNetworkImage(
-            imageUrl: LovableColors.bgImageUrl,
+          // Layer 1: Farm background photo using AgriImage
+          const AgriImage(
+            keywordOrUrl: 'farm',
             fit: BoxFit.cover,
-            placeholder: (_, __) => Container(color: const Color(0xFFD1FAE5)),
-            errorWidget: (_, __, ___) => Container(color: const Color(0xFFD1FAE5)),
           ),
+
 
           // Gradient overlay
           Container(
